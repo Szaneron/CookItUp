@@ -97,12 +97,25 @@ def home(request):
         return render(request, 'home_page.html',
                       {'popular_recipes': popular_recipes, 'latest_recipes': latest_recipes, })
     else:
-        # Obsłuż błędy
-        print('error')
-        return render(request, 'home_page.html', {'error_message': 'Błąd podczas pobierania danych'})
+        return render(request, 'home_page.html')
 
 
 def recipe_detail(request, recipe_id):
-    context = {'recipe_id': recipe_id}
+    # Get API key environment variable
+    api_key = os.getenv('SPOONACULAR_API_KEY')
+    url = f'https://api.spoonacular.com/recipes/{recipe_id}/information?includeNutrition=true&apiKey=' + api_key
 
-    return render(request, 'recipe_detail.html', context)
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        recepe_detail = response.json()
+
+        desired_nutrients = ['Calories', 'Protein', 'Fat', 'Carbohydrates', 'Fiber', 'Sugar']
+        selected_nutrients = [nutrient for nutrient in recepe_detail.nutrition.nutrients if
+                              nutrient['name'] in desired_nutrients]
+
+        print(recepe_detail)
+        return render(request, 'recipe_detail.html',
+                      {'recepe_detail': recepe_detail, 'selected_nutrients': selected_nutrients})
+    else:
+        return render(request, 'recipe_detail.html')

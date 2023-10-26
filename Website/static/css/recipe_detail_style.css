@@ -1,0 +1,21 @@
+@import "root_style.css";
+@import "navbar_style.css";
+
+.dish-type {
+    padding: 0.3rem 1.5rem;
+    border: 1px solid var(--color-eden);
+    border-radius: 2rem;
+}
+
+.nutrition-card {
+    background-color: var(--color-isabelline-light);
+    padding: 0.8rem;
+    border-radius: 1.5rem;
+}
+
+.card-amount {
+    background-color: var(--color-white);
+    height: 3.5rem;
+    width: 3.5rem;
+    border-radius: 50%;
+}
