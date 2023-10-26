@@ -1,0 +1,281 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/home_page_style.css' %}">
+    <title>CockItUp</title>
+</head>
+<body>
+<div class="container">
+    {% include 'navbar.html' %}
+    <div class="container-fluid">
+        <div class="row flex-column flex-md-row">
+            <div class="col d-flex justify-content-center align-items-center mt-3 mb-3">
+                <div>
+                    <h1 class="fw-bold">Discover Your New Favourite Dish With Our <span class="baner-title-span">Tasty Recipes!</span>
+                    </h1>
+                    <p>Elevate your culinary game with our flavorful recipes, explore a world of delicious possibilities
+                        today!</p>
+                    <button class="explore-button">Explore Recipes</button>
+                </div>
+            </div>
+            <div class="col baner-image-div  mt-3 mb-3">
+                <img class="img-fluid banner-image" src="{% static 'images/banner_image.png' %}" alt="Banner image">
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="container-fluid preparation">
+        <div class="row">
+            <div class="col p-5">
+                <div class="row">
+                    <div class="col step-info">
+                        <div class="icon">
+                            <i class="fa-brands fa-readme"></i>
+                        </div>
+                        <div class="text-details">
+                            <h5 class="step-title fw-bold">Read Recipe</h5>
+                            <p>Search and read what recipe you want to cock. Find 100+ more recipes available in
+                                CookItUp.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col step-info">
+                        <div class="icon">
+                            <i class="fa-solid fa-hands"></i>
+                        </div>
+                        <div class="text-details">
+                            <h5 class="step-title fw-bold">Prepare the Ingredients</h5>
+                            <p>Prepare cooking utensils and food ingredients that will be used for the menu you will
+                                cook.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col step-info">
+                        <div class="icon">
+                            <i class="fa-solid fa-kitchen-set"></i>
+                        </div>
+                        <div class="text-details">
+                            <h5 class="step-title fw-bold">Start Cooking</h5>
+                            <p>Cook the menu of the dishes you cook, according to the instructions listed in the recipe
+                                guide that you cook.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col step-info">
+                        <div class="icon">
+                            <i class="fa-solid fa-utensils"></i>
+                        </div>
+                        <div class="text-details">
+                            <h5 class="step-title fw-bold">Enjoy Your Food</h5>
+                            <p>Serve the food you have cooked, then enjoy the meal with your family. Enjoy your
+                                meal.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col p-4">
+                <h3>Let's cook now</h3>
+                <p>Make your family happy with the dishes you make. With us, cooking just got easier.</p>
+                <div class="row">
+                    <div class="col">
+                        <div class="stats-icon-circle d-flex justify-content-center align-items-center">
+                            <div>
+                                <i class="fa-solid fa-book stats-icon"></i>
+                            </div>
+                        </div>
+                        <p class="mt-2 stats-info">
+                            <span><b>100+</b></span><br>
+                            <b>Food Recipes</b>
+                        </p>
+                    </div>
+                    <div class="col">
+                        <div class="stats-icon-circle d-flex justify-content-center align-items-center">
+                            <div>
+                                <i class="fa-solid fa-thumbs-up stats-icon"></i>
+                            </div>
+                        </div>
+                        <p class="mt-2 stats-info">
+                            <span><b>100+</b></span><br>
+                            <b>Best Menu</b>
+                        </p>
+                    </div>
+                    <div class="col">
+                        <div class="stats-icon-circle d-flex justify-content-center align-items-center">
+                            <div>
+                                <i class="fa-solid fa-face-smile-beam stats-icon"></i>
+                            </div>
+                        </div>
+                        <p class="mt-2 stats-info">
+                            <span><b>10k +</b></span><br>
+                            <b>People Satisfied</b>
+                        </p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <div class="green-content">
+                            <h2 class="fw-bold">Guaranteed good quality!</h2>
+                            <img src="{% static 'images/cook.png' %}" alt="">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <hr>
+    <div class="container-fluid">
+        <h3 class="trending">Trending recipes</h3>
+        <div class="row row-cols-4">
+            {% for recipe in popular_recipes %}
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="{{ recipe.image }}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ recipe.title }}</h5>
+                            <div class="card-info">
+                                <div class="card-time">
+                                    <i class="fa-regular fa-clock"></i>
+                                    <p class="card-text">{{ recipe.readyInMinutes }} minutes</p>
+                                </div>
+                                <div class="card-portion">
+                                    <i class="fa-solid fa-utensils"></i>
+                                    <p class="card-text">{{ recipe.servings }} portions</p>
+                                </div>
+                            </div>
+                            <div class="card-calories">
+                                <i class="fa-solid fa-fire"></i>
+                                <p class="card-text">{{ recipe.nutrition.nutrients.0.amount }} calories</p>
+                            </div>
+
+
+                        </div>
+                        <div class="card-footer">
+                            <a href="{% url 'recipe_detail' recipe_id=recipe.id %}"
+                               class="btn btn-primary recipe-button">Zobacz przepis</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="container-fluid mt-3">
+        <h3 class="trending">Latest recipes</h3>
+        <div class="row row-cols-4">
+            {% for recipe in latest_recipes %}
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="{{ recipe.image }}" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ recipe.title }}</h5>
+                            <div class="card-info">
+                                <div class="card-time">
+                                    <i class="fa-regular fa-clock"></i>
+                                    <p class="card-text">{{ recipe.readyInMinutes }} minutes</p>
+                                </div>
+                                <div class="card-portion">
+                                    <i class="fa-solid fa-utensils"></i>
+                                    <p class="card-text">{{ recipe.servings }} portions</p>
+                                </div>
+                            </div>
+                            <div class="card-calories">
+                                <i class="fa-solid fa-fire"></i>
+                                <p class="card-text">{{ recipe.nutrition.nutrients.0.amount }} calories</p>
+                            </div>
+
+
+                        </div>
+                        <div class="card-footer">
+                            <a href="{% url 'recipe_detail' recipe_id=recipe.id %}"
+                               class="btn btn-primary recipe-button">Zobacz przepis</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <hr>
+    <div class="container-fluid email-notification">
+        <div class="row p-5">
+            <div class="col text-center">
+                <h2 class="fw-bold">Get new recipe everyday</h2>
+                <p>Just input your e-mail and get new recipes every day. Let's experience like a professional chef.</p>
+                <div class="d-flex justify-content-center align-items-center">
+                    <form class="d-flex">
+                        <input class="form-control me-2 w-100" type="search" placeholder="Input your e-mail"
+                               aria-label="Search">
+                        <button class="btn btn-outline-success" type="submit">Send</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <hr>
+    <footer class="footer mt-auto">
+        <div class="container-fluid p-5">
+            <div class="row flex-column flex-md-row">
+                <div class="col-12 col-md-5">
+                    <h3 class="footer-title fw-bold">Cook<span>ItUp</span></h3>
+                    <p class="footer-p">Cookitup is a place where you will find an endless source of culinary
+                        inspiration. Our goal is to
+                        share recipes for delicious dishes and inspiring dishes that will allow you to discover the
+                        magic of cooking.</p>
+                </div>
+                <div class="col-12 col-md-3"></div>
+                <div class="col-12 col-md-2 d-flex flex-column mb-3 footer-column">
+                    <h5>About</h5>
+                    <a class="mb-1">Reciepe</a>
+                    <a class="mb-1">Terms & Condition</a>
+                    <a class="mb-1">FAQ</a>
+                </div>
+                <div class="col-12 col-md-2 d-flex flex-column footer-column">
+                    <h5>Company</h5>
+                    <a class="mb-1">Features</a>
+                    <a class="mb-1">Privacy Policy</a>
+                    <a class="mb-1">Terms of Use</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Znajdź wszystkie elementy card-title
+        var cardTitles = $(".card-title");
+
+        // Znajdź największą wysokość card-title
+        var maxHeight = 0;
+        cardTitles.each(function () {
+            var titleHeight = $(this).height();
+            if (titleHeight > maxHeight) {
+                maxHeight = titleHeight;
+            }
+        });
+
+        // Ustaw wszystkim card-title największą wysokość
+        cardTitles.height(maxHeight);
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+        integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+        integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+        crossorigin="anonymous"></script>
+</body>
+</html>

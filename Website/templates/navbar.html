@@ -1,0 +1,45 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-ligh">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTogglerDemo01"
+                aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTogglerDemo01">
+            <a class="navbar-brand" href="#"><h4 class="fw-bold">Cook<span>ItUp</span></h4></a>
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 mx-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" aria-current="page" href="#">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Recipes</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Meal planner</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Contacts</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav  mb-2 mb-lg-0">{% if user.is_authenticated %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle user-username" href="#" id="navbarDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        {{ user.username }} <i class="fa fa-caret-down"></i>
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="#">Action</a></li>
+                        <li><a class="dropdown-item" href="#">Another action</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item" href="{% url 'logout_user' %}">Log out</a></li>
+                    </ul>
+                </li>
+            {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login_user' %}">Log in</a>
+                </li>
+            {% endif %}</ul>
+        </div>
+    </div>
+</nav>
