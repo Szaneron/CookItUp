@@ -1,0 +1,45 @@
+@import "root_style.css";
+
+.custom-section {
+    background-color: var(--color-isabelline-light);
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem var(--color-tradewind) !important;
+}
+
+.site-title-span {
+    color: var(--color-eden);
+}
+
+.custom-card {
+    border-radius: 1rem;
+}
+
+.login-img {
+    height: 100%;
+    object-fit: cover;
+    border-radius: 1rem 0 0 1rem;
+}
+
+.custom-button {
+    color: var(--color-white);
+    background-color: var(--color-eden);
+}
+
+.custom-button:hover {
+    color: var(--color-white);
+    background-color: var(--color-viridian);
+}
+
+.forgot-link:hover {
+    color: var(--color-almond-frost);
+}
+
+.register-link {
+    color: var(--color-eden)
+}
+
+.register-link:hover {
+    color: var(--color-viridian)
+}

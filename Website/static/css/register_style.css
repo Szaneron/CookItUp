@@ -1,0 +1,54 @@
+@import "root_style.css";
+
+.custom-section {
+    background-color: var(--color-isabelline-light);
+}
+
+.site-title-span {
+    color: var(--color-eden);
+}
+
+.custom-card {
+    border-radius: 1rem;
+}
+
+.register-img {
+    height: 100%;
+    object-fit: cover;
+    border-radius: 1rem 0 0 1rem;
+}
+
+.custom-button {
+    color: var(--color-white);
+    background-color: var(--color-eden);
+}
+
+.custom-button:hover {
+    color: var(--color-white);
+    background-color: var(--color-viridian);
+}
+
+.forgot-link:hover {
+    color: var(--color-almond-frost);
+}
+
+.login-link {
+    color: var(--color-eden)
+}
+
+.login-link:hover {
+    color: var(--color-viridian)
+}
+
+.form-check-input:checked {
+    background-color: var(--color-eden) !important;
+    border-color: var(--color-eden) !important;
+}
+
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem var(--color-tradewind) !important;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem var(--color-tradewind) !important;
+}
