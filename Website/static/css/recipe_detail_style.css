@@ -15,7 +15,30 @@
 
 .card-amount {
     background-color: var(--color-white);
-    height: 3.5rem;
-    width: 3.5rem;
+    height: 4rem;
+    width: 4rem;
     border-radius: 50%;
+}
+
+.ingredient-container {
+    display: grid !important;
+    align-items: center;
+    gap: 1rem;
+    grid-template-columns: 4rem auto auto;
+}
+
+.custom-image {
+    width: 4rem;
+    height: 4rem;
+}
+
+.ingredient-measure {
+    text-align: right;
+}
+
+.equipment-container {
+    display: grid !important;
+    align-items: center;
+    gap: 1rem;
+    grid-template-columns: 4rem auto;
 }

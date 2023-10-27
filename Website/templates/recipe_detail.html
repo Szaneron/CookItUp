@@ -12,44 +12,105 @@
           integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{% static 'css/recipe_detail_style.css' %}">
     <title>CockItUp</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 <div class="container">
     {% include 'navbar.html' %}
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-5"><img src="{{ recepe_detail.image }}" class="card-img-top" alt="..."></div>
-            <div class="col-7">
-                <h1 class="fw-bold">{{ recepe_detail.title }}</h1>
-
+        <div class="row g-4 g-lg-5">
+            <div class="col-12 col-lg-5">
+                <img src="{{ recipe_detail.image }}" class="card-img" alt="...">
+            </div>
+            <div class="col-12 col-lg-7">
+                <h1 class="fw-bold mb-4">{{ recipe_detail.title }}</h1>
                 <div class="row">
-                    <div class="col d-flex gap-3">
-                        {% for type in recepe_detail.dishTypes %}
+                    <div class="col d-flex flex-wrap gap-3">
+                        {% for type in recipe_detail.dishTypes %}
                             <div class="dish-type">
                                 {{ type }}
                             </div>
                         {% endfor %}</div>
                 </div>
-
+                <hr>
+                <span>Servings: {{ recipe_detail.servings }}</span><br>
+                <span>Cooking time: {{ recipe_detail.readyInMinutes }}</span>
+                <hr>
                 <div class="row">
-                    <div class="col d-flex gap-3 ">
+                    <p>Nutrition per serving</p><br>
+                    <div class="col d-flex flex-wrap gap-3 ">
                         {% for nutrient in selected_nutrients %}
                             <div class="nutrition-card">
                                 <div class="card-amount d-flex text-center align-items-center justify-content-center mb-2">
-                                    {{ nutrient.amount }}
+                                    {% if nutrient.unit == 'kcal' %}
+                                        {{ nutrient.amount }}
+                                    {% else %}
+                                        {{ nutrient.amount|floatformat:1 }}{{ nutrient.unit }}
+                                    {% endif %}
                                 </div>
-                                <div class="name text-center">
-                                    {{ nutrient.name }}
+                                <div class="card-title text-center">
+                                    {% if nutrient.name == 'Carbohydrates' %}
+                                        Carbo
+                                    {% else %}
+                                        {{ nutrient.name }}
+                                    {% endif %}
                                 </div>
                             </div>
                         {% endfor %}
                     </div>
                 </div>
-                <p>{{ recepe_detail.spoonacularSourceUrl }}</p>
             </div>
         </div>
+        <div class="row mt-3 g-4 g-lg-5">
+            <div class="col-12 col-lg-5 mt-0">
 
+                <h2 class="mb-2">Ingredients</h2>
+                {% for ingredient in recipe_detail.extendedIngredients %}
+                    <div class="row mb-1">
+                        <div class="col ingredient-container">
+                            <div class="ingredient-image">
+                                <img class="img-fluid custom-image"
+                                     src="https://spoonacular.com/cdn/ingredients_100x100/{{ ingredient.image }}"
+                                     alt="">
+                            </div>
+                            <div class="ingredient-name">
+                                {{ ingredient.name }}
+                            </div>
+                            <div class="ingredient-measure">
+                                {{ ingredient.measures.metric.amount|floatformat:1 }} {{ ingredient.measures.metric.unitShort }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+                <h2 class="mb-2 mt-5">Equipment</h2>
+                {% for item in recipe_equipment %}
+                    <div class="row mb-1">
+                        <div class="col equipment-container">
+                            <div class="equipment-image">
+                                <img class="img-fluid custom-image"
+                                     src="https://spoonacular.com/cdn/equipment_100x100/{{ item.image }}"
+                                     alt="">
+                            </div>
+                            <div class="equipment-name">
+                                {{ item.name }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+
+            </div>
+            <div class="col-12 col-lg-7 mt-0">
+                <h2 class="mb-2">Instructions</h2>
+                {% for step in recipe_steps %}
+                    <h5>Step {{ step.number }}</h5>
+                    <p>{{ step.step }}</p>
+                {% endfor %}
+            </div>
+
+        </div>
     </div>
+
 </div>
 
 

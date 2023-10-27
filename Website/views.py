@@ -3,6 +3,7 @@ import os
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, redirect
+from django.utils.safestring import mark_safe
 from dotenv import load_dotenv
 from django.contrib import messages
 from .forms import CustomUserCreationForm
@@ -86,7 +87,7 @@ def logout_user(request):
 def home(request):
     # Get API key environment variable
     api_key = os.getenv('SPOONACULAR_API_KEY')
-    popular_url = 'https://api.spoonacular.com/recipes/informationBulk?ids=638249,647634,639411,1055614&includeNutrition=true&apiKey=' + api_key
+    popular_url = 'https://api.spoonacular.com/recipes/informationBulk?ids=638248,647634,639411,1055614&includeNutrition=true&apiKey=' + api_key
     latest_url = 'https://api.spoonacular.com/recipes/informationBulk?ids=654125,656752,800754,1098357&includeNutrition=true&apiKey=' + api_key
     response1 = requests.get(popular_url)
     response2 = requests.get(latest_url)
@@ -103,19 +104,35 @@ def home(request):
 def recipe_detail(request, recipe_id):
     # Get API key environment variable
     api_key = os.getenv('SPOONACULAR_API_KEY')
-    url = f'https://api.spoonacular.com/recipes/{recipe_id}/information?includeNutrition=true&apiKey=' + api_key
+    recipe_url = f'https://api.spoonacular.com/recipes/{recipe_id}/information?includeNutrition=true&apiKey=' + api_key
+    equipment_url = f'https://api.spoonacular.com/recipes/{recipe_id}/equipmentWidget.json?apiKey=' + api_key
 
-    response = requests.get(url)
+    response_recipe = requests.get(recipe_url)
+    response_equipment = requests.get(equipment_url)
 
-    if response.status_code == 200:
-        recepe_detail = response.json()
+    if response_recipe.status_code == 200:
+        recipe_detail = response_recipe.json()
+        recipe_equipment = response_equipment.json()
 
         desired_nutrients = ['Calories', 'Protein', 'Fat', 'Carbohydrates', 'Fiber', 'Sugar']
-        selected_nutrients = [nutrient for nutrient in recepe_detail.nutrition.nutrients if
+        selected_nutrients = [nutrient for nutrient in recipe_detail['nutrition']['nutrients'] if
                               nutrient['name'] in desired_nutrients]
 
-        print(recepe_detail)
-        return render(request, 'recipe_detail.html',
-                      {'recepe_detail': recepe_detail, 'selected_nutrients': selected_nutrients})
+        # Get recipe steps
+        recipe_steps = []
+        for instruction in recipe_detail['analyzedInstructions']:
+            for step in instruction['steps']:
+                print(step.number)
+                recipe_steps.append(step)
+
+        context = {
+            'recipe_detail': recipe_detail,
+            'selected_nutrients': selected_nutrients,
+            'recipe_equipment': recipe_equipment['equipment'],
+            'recipe_steps': recipe_steps,
+
+        }
+        return render(request, 'recipe_detail.html', context)
+
     else:
         return render(request, 'recipe_detail.html')
