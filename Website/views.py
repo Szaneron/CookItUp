@@ -1,3 +1,4 @@
+import decimal
 import os
 
 from django.contrib.auth import authenticate, login, logout
@@ -105,14 +106,23 @@ def recipe_detail(request, recipe_id):
     # Get API key environment variable
     api_key = os.getenv('SPOONACULAR_API_KEY')
     recipe_url = f'https://api.spoonacular.com/recipes/{recipe_id}/information?includeNutrition=true&apiKey=' + api_key
-    equipment_url = f'https://api.spoonacular.com/recipes/{recipe_id}/equipmentWidget.json?apiKey=' + api_key
-
     response_recipe = requests.get(recipe_url)
-    response_equipment = requests.get(equipment_url)
 
-    if response_recipe.status_code == 200:
+    similar_url = f'https://api.spoonacular.com/recipes/{recipe_id}/similar?number=4&apiKey=' + api_key
+    response_similar = requests.get(similar_url)
+
+    recipe_similar = response_similar.json()
+
+    similar_ids = []
+    for recipe in recipe_similar:
+        similar_ids.append(recipe['id'])
+    ids_string = ','.join(map(str, similar_ids))
+    similar_recipes_url = f'https://api.spoonacular.com/recipes/informationBulk?ids={ids_string}&includeNutrition=true&apiKey=' + api_key
+    response_similar_recipes = requests.get(similar_recipes_url)
+
+    if response_recipe.status_code == 200 and response_similar.status_code == 200 and response_similar_recipes.status_code == 200:
         recipe_detail = response_recipe.json()
-        recipe_equipment = response_equipment.json()
+        similar_recipes = response_similar_recipes.json()
 
         desired_nutrients = ['Calories', 'Protein', 'Fat', 'Carbohydrates', 'Fiber', 'Sugar']
         selected_nutrients = [nutrient for nutrient in recipe_detail['nutrition']['nutrients'] if
@@ -122,14 +132,24 @@ def recipe_detail(request, recipe_id):
         recipe_steps = []
         for instruction in recipe_detail['analyzedInstructions']:
             for step in instruction['steps']:
-                print(step.number)
                 recipe_steps.append(step)
+
+        product_matches = recipe_detail['winePairing']['productMatches'][0]
+
+        # Set product matches price
+        product_matches_price = product_matches['price']
+        product_matches_price = product_matches_price.replace('$', '')
+        product_matches_price = decimal.Decimal(product_matches_price)
+        product_matches_price = round(product_matches_price, 2)
+        product_matches_price = str(product_matches_price) + ' $'
 
         context = {
             'recipe_detail': recipe_detail,
             'selected_nutrients': selected_nutrients,
-            'recipe_equipment': recipe_equipment['equipment'],
             'recipe_steps': recipe_steps,
+            'similar_recipes': similar_recipes,
+            'product_matches': product_matches,
+            'product_matches_price': product_matches_price,
 
         }
         return render(request, 'recipe_detail.html', context)

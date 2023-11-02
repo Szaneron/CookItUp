@@ -137,9 +137,9 @@
     <hr>
     <div class="container-fluid">
         <h3 class="trending">Trending recipes</h3>
-        <div class="row row-cols-4">
+        <div class="row row-cols-1 row-cols-sm-1 row-cols-md-2 row-cols-lg-4">
             {% for recipe in popular_recipes %}
-                <div class="col">
+                <div class="col mb-3">
                     <div class="card h-100">
                         <img src="{{ recipe.image }}" class="card-img-top" alt="...">
                         <div class="card-body">
@@ -223,44 +223,19 @@
         </div>
     </div>
     <hr>
-    <footer class="footer mt-auto">
-        <div class="container-fluid p-5">
-            <div class="row flex-column flex-md-row">
-                <div class="col-12 col-md-5">
-                    <h3 class="footer-title fw-bold">Cook<span>ItUp</span></h3>
-                    <p class="footer-p">Cookitup is a place where you will find an endless source of culinary
-                        inspiration. Our goal is to
-                        share recipes for delicious dishes and inspiring dishes that will allow you to discover the
-                        magic of cooking.</p>
-                </div>
-                <div class="col-12 col-md-3"></div>
-                <div class="col-12 col-md-2 d-flex flex-column mb-3 footer-column">
-                    <h5>About</h5>
-                    <a class="mb-1">Reciepe</a>
-                    <a class="mb-1">Terms & Condition</a>
-                    <a class="mb-1">FAQ</a>
-                </div>
-                <div class="col-12 col-md-2 d-flex flex-column footer-column">
-                    <h5>Company</h5>
-                    <a class="mb-1">Features</a>
-                    <a class="mb-1">Privacy Policy</a>
-                    <a class="mb-1">Terms of Use</a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    {% include 'footer.html' %}
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
     $(document).ready(function () {
         // Znajdź wszystkie elementy card-title
-        var cardTitles = $(".card-title");
+        let cardTitles = $(".card-title");
 
         // Znajdź największą wysokość card-title
-        var maxHeight = 0;
+        let maxHeight = 0;
         cardTitles.each(function () {
-            var titleHeight = $(this).height();
+            let titleHeight = $(this).height();
             if (titleHeight > maxHeight) {
                 maxHeight = titleHeight;
             }

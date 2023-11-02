@@ -1,10 +1,26 @@
 @import "root_style.css";
 @import "navbar_style.css";
+@import "home_page_style.css";
+@import "footer_style.css";
+
+.recipe-title {
+    color: var(--color-eden);
+}
+
+.custom-h2 {
+    color: var(--color-eden);
+    font-weight: 600;
+}
 
 .dish-type {
     padding: 0.3rem 1.5rem;
     border: 1px solid var(--color-eden);
     border-radius: 2rem;
+}
+
+.vegetarian-dish {
+    color: var(--color-eden);
+    font-weight: 600;
 }
 
 .nutrition-card {
@@ -42,3 +58,43 @@
     gap: 1rem;
     grid-template-columns: 4rem auto;
 }
+
+.step-title {
+    font-weight: 600;
+    color: var(--color-eden);
+}
+
+.pairing-wine-name {
+    font-weight: 600;
+}
+
+.wine-div {
+    background-color: var(--color-isabelline-light);
+    padding: 0.3rem 1.5rem;
+    border-radius: 2rem;
+}
+
+/*.trending {*/
+/*    margin-bottom: 1rem;*/
+/*}*/
+
+/*.card-img-top {*/
+/*    height: 14rem;*/
+/*}*/
+
+/*.card-footer {*/
+/*    background-color: var(--color-white);*/
+/*    border-top: none;*/
+/*}*/
+
+/*.card-info {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    justify-content: space-between;*/
+/*}*/
+
+/*.card-calories, .card-time, .card-portion {*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    gap: 0.5rem;*/
+/*}*/

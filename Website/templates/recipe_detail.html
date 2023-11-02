@@ -23,7 +23,7 @@
                 <img src="{{ recipe_detail.image }}" class="card-img" alt="...">
             </div>
             <div class="col-12 col-lg-7">
-                <h1 class="fw-bold mb-4">{{ recipe_detail.title }}</h1>
+                <h1 class="fw-bold mb-4 recipe-title">{{ recipe_detail.title }}</h1>
                 <div class="row">
                     <div class="col d-flex flex-wrap gap-3">
                         {% for type in recipe_detail.dishTypes %}
@@ -33,6 +33,9 @@
                         {% endfor %}</div>
                 </div>
                 <hr>
+                {% if recipe_detail.vegetarian == True %}
+                    <span class="vegetarian-dish">Vegetarian dish</span><br>
+                {% endif %}
                 <span>Servings: {{ recipe_detail.servings }}</span><br>
                 <span>Cooking time: {{ recipe_detail.readyInMinutes }}</span>
                 <hr>
@@ -63,52 +66,105 @@
         </div>
         <div class="row mt-3 g-4 g-lg-5">
             <div class="col-12 col-lg-5 mt-0">
-
-                <h2 class="mb-2">Ingredients</h2>
-                {% for ingredient in recipe_detail.extendedIngredients %}
-                    <div class="row mb-1">
-                        <div class="col ingredient-container">
-                            <div class="ingredient-image">
-                                <img class="img-fluid custom-image"
-                                     src="https://spoonacular.com/cdn/ingredients_100x100/{{ ingredient.image }}"
-                                     alt="">
-                            </div>
-                            <div class="ingredient-name">
-                                {{ ingredient.name }}
-                            </div>
-                            <div class="ingredient-measure">
-                                {{ ingredient.measures.metric.amount|floatformat:1 }} {{ ingredient.measures.metric.unitShort }}
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-
-                <h2 class="mb-2 mt-5">Equipment</h2>
-                {% for item in recipe_equipment %}
-                    <div class="row mb-1">
-                        <div class="col equipment-container">
-                            <div class="equipment-image">
-                                <img class="img-fluid custom-image"
-                                     src="https://spoonacular.com/cdn/equipment_100x100/{{ item.image }}"
-                                     alt="">
-                            </div>
-                            <div class="equipment-name">
-                                {{ item.name }}
+                <div class="mb-4">
+                    <h2 class="mb-4 custom-h2">Ingredients</h2>
+                    {% for ingredient in recipe_detail.extendedIngredients %}
+                        <div class="row mb-1">
+                            <div class="col ingredient-container">
+                                <div class="ingredient-image">
+                                    <img class="img-fluid custom-image"
+                                         src="https://spoonacular.com/cdn/ingredients_100x100/{{ ingredient.image }}"
+                                         alt="">
+                                </div>
+                                <div class="ingredient-name">
+                                    {{ ingredient.name }}
+                                </div>
+                                <div class="ingredient-measure">
+                                    {{ ingredient.measures.metric.amount|floatformat:1 }} {{ ingredient.measures.metric.unitShort }}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                {% endfor %}
-
+                    {% endfor %}
+                </div>
             </div>
             <div class="col-12 col-lg-7 mt-0">
-                <h2 class="mb-2">Instructions</h2>
+                <h2 class="mb-4 custom-h2">Instructions</h2>
                 {% for step in recipe_steps %}
-                    <h5>Step {{ step.number }}</h5>
+                    <h5 class="step-title">Step {{ step.number }}</h5>
                     <p>{{ step.step }}</p>
                 {% endfor %}
             </div>
 
         </div>
+        <hr>
+        <div class="container-fluid">
+            <h2 class="custom-h2">Wine pairing</h2>
+            <div class="row">
+                <h4>Paired wines</h4>
+                <div class="col">
+                    <div class="d-flex gap-3 flex-wrap mb-3">
+                        {% for wine in recipe_detail.winePairing.pairedWines %}
+                            <div class="wine-div">
+                                {{ wine }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <p>{{ recipe_detail.winePairing.pairingText }}</p>
+                </div>
+            </div>
+            <div class="row">
+                <h4>Matched Product</h4>
+                <div class="col d-flex gap-3 align-items-center">
+                    <div>
+                        <img src="{{ product_matches.imageUrl }}" class="img-fluid pairing-wine-image"
+                             alt="matched_wine">
+                    </div>
+                    <div>
+                        <p class="pairing-wine-name">{{ product_matches.title }}</p>
+                        <p>{{ product_matches.description }}</p>
+                        <span>Price: {{ product_matches_price }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="container-fluid">
+            <h2 class="custom-h2">Similar recipes</h2>
+            <div class="row row-cols-1 row-cols-sm-1 row-cols-md-2 row-cols-lg-4">
+                {% for recipe in similar_recipes %}
+                    <div class="col mb-3">
+                        <div class="card h-100">
+                            <img src="{{ recipe.image }}" class="card-img-top" alt="...">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ recipe.title }}</h5>
+                                <div class="card-info">
+                                    <div class="card-time">
+                                        <i class="fa-regular fa-clock"></i>
+                                        <p class="card-text">{{ recipe.readyInMinutes }} minutes</p>
+                                    </div>
+                                    <div class="card-portion">
+                                        <i class="fa-solid fa-utensils"></i>
+                                        <p class="card-text">{{ recipe.servings }} portions</p>
+                                    </div>
+                                </div>
+                                <div class="card-calories">
+                                    <i class="fa-solid fa-fire"></i>
+                                    <p class="card-text">{{ recipe.nutrition.nutrients.0.amount }} calories</p>
+                                </div>
+
+
+                            </div>
+                            <div class="card-footer">
+                                <a href="{% url 'recipe_detail' recipe_id=recipe.id %}"
+                                   class="btn btn-primary recipe-button">Zobacz przepis</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <hr>
+        {% include 'footer.html' %}
     </div>
 
 </div>

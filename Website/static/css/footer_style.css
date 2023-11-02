@@ -1,0 +1,16 @@
+.footer-column a {
+    color: var(--color-black);
+    cursor: pointer;
+}
+
+.footer-column a:hover {
+    color: var(--color-almond-frost)
+}
+
+.footer-title span {
+    color: var(--color-eden);
+}
+
+.footer-p {
+    text-align: justify;
+}

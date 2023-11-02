@@ -1,6 +1,6 @@
 @import "root_style.css";
 @import "navbar_style.css";
-
+@import "footer_style.css";
 
 .user-username {
     color: var(--color-eden) !important;
@@ -53,7 +53,7 @@
     border-color: var(--color-eden);
 }
 
-.recipe-button:hover, .recipe-button:active {
+.recipe-button:hover, .recipe-button:active, .recipe-button:focus {
     background-color: var(--color-tradewind) !important;
     border-color: var(--color-tradewind) !important;
 }
@@ -155,25 +155,8 @@
     box-shadow: 0 0 0 0.25rem var(--color-tradewind);
 }
 
-.footer-title span {
-    color: var(--color-eden);
-}
-
-.footer-p {
-    text-align: justify;
-}
-
 .card {
     border-color: var(--color-almond);
-}
-
-.footer-column a {
-    color: var(--color-black);
-    cursor: pointer;
-}
-
-.footer-column a:hover {
-    color: var(--color-almond-frost)
 }
 
 
@@ -182,5 +165,9 @@
         height: 15rem;
         display: block;
         margin: auto;
+    }
+
+    .card-info {
+        display: grid;
     }
 }
