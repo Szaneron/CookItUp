@@ -1,0 +1,60 @@
+@import "root_style.css";
+@import "navbar_style.css";
+@import "home_page_style.css";
+@import "footer_style.css";
+
+.banner {
+    position: relative;
+    padding: 2rem 5rem;
+}
+
+.banner:before {
+    content: "";
+    background-image: url(../images/recipe_banner.jpg);
+    background-size: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    z-index: -1;
+    opacity: 0.3; /* Here is your opacity */
+}
+
+.banner-text {
+    font-weight: 500;
+}
+
+.custom-search {
+    width: 50%;
+}
+
+.search-button {
+    background-color: var(--color-eden);
+    color: white;
+}
+
+.search-button:hover {
+    background-color: var(--color-tradewind);
+    color: white;
+}
+
+.swiper-slide {
+    border: 2px solid var(--color-isabelline-light);
+    border-radius: 2rem;
+    padding: 0.3rem 1.5rem;
+}
+
+
+@media screen and (max-width: 1300px) {
+    .custom-search {
+        width: 75%;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .custom-search {
+        width: 100%;
+    }
+}

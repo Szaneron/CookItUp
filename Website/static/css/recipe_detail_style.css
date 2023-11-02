@@ -73,28 +73,3 @@
     padding: 0.3rem 1.5rem;
     border-radius: 2rem;
 }
-
-/*.trending {*/
-/*    margin-bottom: 1rem;*/
-/*}*/
-
-/*.card-img-top {*/
-/*    height: 14rem;*/
-/*}*/
-
-/*.card-footer {*/
-/*    background-color: var(--color-white);*/
-/*    border-top: none;*/
-/*}*/
-
-/*.card-info {*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*    justify-content: space-between;*/
-/*}*/
-
-/*.card-calories, .card-time, .card-portion {*/
-/*    display: flex;*/
-/*    align-items: center;*/
-/*    gap: 0.5rem;*/
-/*}*/

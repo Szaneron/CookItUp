@@ -28,7 +28,6 @@
 
 .navbar-light .navbar-nav .nav-link.active {
     color: var(--color-eden);
-    font-weight: 600;
 }
 
 .navbar-collapse {
