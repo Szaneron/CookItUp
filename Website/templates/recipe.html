@@ -53,7 +53,10 @@
                 <div class="col">
                     <!-- Swiper -->
                     <div class="d-flex justify-content-center flex-wrap gap-3">
-                        <div class="swiper-slide">soup</div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <button class="swiper-slide" name="soup" type="submit">soup</button>
+                        </form>
                         <div class="swiper-slide">main course</div>
                         <div class="swiper-slide">side dish</div>
                         <div class="swiper-slide ">dessert</div>
@@ -68,9 +71,9 @@
         </div>
         <hr>
         <div class="sector">
-            <h3 class="trending">Popular recipes</h3>
+            <h3 class="trending">{{ section_title }}</h3>
             <div class="row row-cols-1 row-cols-sm-1 row-cols-md-2 row-cols-lg-4">
-                {% for recipe in paged_recipes %}
+                {% for recipe in recipes %}
                     <div class="col mb-4">
                         <div class="card h-100">
                             <img src="{{ recipe.image }}" class="card-img-top" alt="...">
@@ -101,23 +104,35 @@
                     </div>
                 {% endfor %}
             </div>
-            <div class="pagination">
-        <span class="step-links">
-            {% if paged_recipes.has_previous %}
-                <a href="?page=1">&laquo; first</a>
-                <a href="?page={{ paged_recipes.previous_page_number }}">previous</a>
-            {% endif %}
+            {% if recipes.count > 8 %}
+                <div class="pagination-section mt-4">
+                    <ul class="pagination justify-content-end">
+                        {% if recipes.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1">First</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ recipes.previous_page_number }}">Previous</a>
+                            </li>
+                        {% endif %}
 
-            <span class="current">
-                Strona {{ paged_recipes.number }} z {{ paged_recipes.paginator.num_pages }}.
-            </span>
+                        {% for num in recipes.paginator.page_range %}
+                            <li class="page-item{% if num == recipes.number %} active{% endif %}">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                        {% endfor %}
 
-            {% if paged_recipes.has_next %}
-                <a href="?page={{ paged_recipes.next_page_number }}">next</a>
-                <a href="?page={{ paged_recipes.paginator.num_pages }}">last &raquo;</a>
+                        {% if recipes.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ recipes.next_page_number }}">Next</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ recipes.paginator.num_pages }}">Last</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
             {% endif %}
-        </span>
-            </div>
         </div>
 
         <hr>

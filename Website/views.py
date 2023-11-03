@@ -3,8 +3,10 @@ import os
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import UserCreationForm
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 from dotenv import load_dotenv
 from django.contrib import messages
@@ -108,37 +110,37 @@ def recipe(request):
     # Get API key environment variable
     api_key = os.getenv('SPOONACULAR_API_KEY')
 
-    random_recieps_url = 'https://api.spoonacular.com/recipes/random?number=12&apiKey=' + api_key
-    response_random_recieps = requests.get(random_recieps_url)
-    random_recieps = response_random_recieps.json()
-    if random_recieps['code'] == 402:
-        print(response_random_recieps)
+    # Id's from random to put them into another request with nutrition
+    random_ids = ['638248', '647634', '639411', '1055614', '645145', '633754', '664501', '638199', '641794', '665616',
+                  '642648', '661757', '640856', '634605', '665721', '715588', '641727', '660231', '764752', '652393']
+    ids_string = ','.join(map(str, random_ids))
 
-        return render(request, 'recipe.html')
-    elif random_recieps.status_code == 200:
-        # Get id's from random to put them into another request with nutrition
-        random_ids = []
-        for recipe in random_recieps['recipes']:
-            random_ids.append(recipe['id'])
-        ids_string = ','.join(map(str, random_ids))
-        recipes_url = f'https://api.spoonacular.com/recipes/informationBulk?ids={ids_string}&includeNutrition=true&apiKey=' + api_key
-        response_recieps = requests.get(recipes_url)
+    recipes_url = f'https://api.spoonacular.com/recipes/informationBulk?ids={ids_string}&includeNutrition=true&apiKey=' + api_key
+    response_recieps = requests.get(recipes_url)
 
-        if response_recieps.status_code == 200:
-            recipes = response_recieps.json()
-            print(recipes)
+    if response_recieps.status_code == 200:
+        recipes = response_recieps.json()
 
-            paginator = Paginator(recipes, 5)  # Dzieli listę na strony z po 5 rekordami na każdej stronie
-            page_number = request.GET.get('page')
-            paged_recipes = paginator.get_page(page_number)
+        paginator = Paginator(recipes, 8)  # Liczba przepisów na stronę
+        page = request.GET.get('page')
+        recipes = paginator.get_page(page)
 
-            context = {
-                'recipes': recipes,
-                'paged_recipes': paged_recipes,
-            }
-            return render(request, 'recipe.html', context)
-        else:
-            return render(request, 'recipe.html')
+        if request.method == 'POST':
+            if 'soup' in request.POST:
+                recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number=16&type=soup&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+                response_recieps = requests.get(recipes_url)
+                recipes = response_recieps.json()
+                recipes = recipes['results']
+                paginator = Paginator(recipes, 8)  # Liczba przepisów na stronę
+                page = request.GET.get('page')
+                recipes = paginator.get_page(page)
+                return render(request, 'recipe.html', {'recipes': recipes, 'section_title': 'Soup recipes'})
+
+        context = {
+            'recipes': recipes,
+            'section_title': 'Popular recipes'
+        }
+        return render(request, 'recipe.html', context)
     else:
         return render(request, 'recipe.html')
 

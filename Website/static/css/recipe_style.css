@@ -41,11 +41,32 @@
 }
 
 .swiper-slide {
+    background-color: var(--color-white);
     border: 2px solid var(--color-isabelline-light);
     border-radius: 2rem;
     padding: 0.3rem 1.5rem;
 }
 
+.page-item.active .page-link {
+    color: var(--color-white);
+    background-color: var(--color-eden);
+    border-color: var(--color-eden);
+}
+
+.page-link {
+    font-weight: 400;
+    color: var(--color-eden);
+}
+
+.page-link:hover {
+    color: var(--color-black);
+}
+
+.page-link:focus {
+    color: var(--color-isabelline-light);
+    background-color: var(--color-tradewind);
+    box-shadow: 0 0 0 0.25rem var(--color-tradewind);
+}
 
 @media screen and (max-width: 1300px) {
     .custom-search {
