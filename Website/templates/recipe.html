@@ -1,12 +1,10 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" type="text/css" href="{% static 'css/recipe_style.css' %}">
@@ -56,15 +54,15 @@
                         <form method="post">
                             {% csrf_token %}
                             <button class="swiper-slide" name="soup" type="submit">soup</button>
+                            <button class="swiper-slide" name="main_course" type="submit">main course</button>
+                            <button class="swiper-slide" name="side_dish" type="submit">side dish</button>
+                            <button class="swiper-slide" name="dessert" type="submit">dessert</button>
+                            <button class="swiper-slide" name="salad" type="submit">salad</button>
+                            <button class="swiper-slide" name="appetizer" type="submit">appetizer</button>
+                            <button class="swiper-slide" name="breakfast" type="submit">breakfast</button>
+                            <button class="swiper-slide" name="sauce" type="submit">sauce</button>
+                            <button class="swiper-slide" name="drink" type="submit">drink</button>
                         </form>
-                        <div class="swiper-slide">main course</div>
-                        <div class="swiper-slide">side dish</div>
-                        <div class="swiper-slide ">dessert</div>
-                        <div class="swiper-slide">salad</div>
-                        <div class="swiper-slide">appetizer</div>
-                        <div class="swiper-slide">breakfast</div>
-                        <div class="swiper-slide">sauce</div>
-                        <div class="swiper-slide">drink</div>
                     </div>
                 </div>
             </div>
@@ -72,85 +70,154 @@
         <hr>
         <div class="sector">
             <h3 class="trending">{{ section_title }}</h3>
-            <div class="row row-cols-1 row-cols-sm-1 row-cols-md-2 row-cols-lg-4">
-                {% for recipe in recipes %}
-                    <div class="col mb-4">
-                        <div class="card h-100">
-                            <img src="{{ recipe.image }}" class="card-img-top" alt="...">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ recipe.title }}</h5>
-                                <div class="card-info">
-                                    <div class="card-time">
-                                        <i class="fa-regular fa-clock"></i>
-                                        <p class="card-text">{{ recipe.readyInMinutes }} minutes</p>
-                                    </div>
-                                    <div class="card-portion">
-                                        <i class="fa-solid fa-utensils"></i>
-                                        <p class="card-text">{{ recipe.servings }} portions</p>
-                                    </div>
-                                </div>
-                                <div class="card-calories">
-                                    <i class="fa-solid fa-fire"></i>
-                                    <p class="card-text">{{ recipe.nutrition.nutrients.0.amount }} calories</p>
-                                </div>
-
-
-                            </div>
-                            <div class="card-footer">
-                                <a href="{% url 'recipe_detail' recipe_id=recipe.id %}"
-                                   class="btn btn-primary recipe-button">Zobacz przepis</a>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
+            <div class="row row-cols-1 row-cols-sm-1 row-cols-md-2 row-cols-lg-4" id="recipe-container">
+                <!-- Tutaj zostaną wyświetlone przepisy za pomocą JavaScript -->
             </div>
-            {% if recipes.count > 8 %}
-                <div class="pagination-section mt-4">
-                    <ul class="pagination justify-content-end">
-                        {% if recipes.has_previous %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page=1">First</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ recipes.previous_page_number }}">Previous</a>
-                            </li>
-                        {% endif %}
+            <nav aria-label="Recipe Pagination" id="pagination-container">
+                <!-- Tutaj zostanie wygenerowana paginacja za pomocą JavaScript -->
+            </nav>
 
-                        {% for num in recipes.paginator.page_range %}
-                            <li class="page-item{% if num == recipes.number %} active{% endif %}">
-                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-                            </li>
-                        {% endfor %}
-
-                        {% if recipes.has_next %}
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ recipes.next_page_number }}">Next</a>
-                            </li>
-                            <li class="page-item">
-                                <a class="page-link" href="?page={{ recipes.paginator.num_pages }}">Last</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </div>
-            {% endif %}
+            <hr>
+            {% include 'footer.html' %}
         </div>
-
-        <hr>
-        {% include 'footer.html' %}
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
 <script>
     const active_link = document.getElementById('nav-recipe');
     active_link.classList.add('active', 'fw-bold');
 
+    const api_key = '{{api_key}}';
+    const api_question = '{{api_question}}';
+    const djangoUrl = "{{recipes_url}}";
+    const apiUrl = djangoUrl.replace(/&amp;/g, '&');
+    const itemPerPage = 8
+
+    // Function to retrieve data from API
+    function getRecipes(page = 1) {
+        $.ajax({
+            url: `${apiUrl}`,
+            method: 'GET',
+            success: function (data) {
+                if (api_question === 'initial') {
+                    const recipes = data;
+                    // Call the function to display recipes
+                    displayRecipes(recipes, page, itemPerPage); // Wyświetl tylko 8 przepisów na stronę
+
+                    // Generate pagination
+                    generatePagination(recipes.length, page, itemPerPage);
+                } else {
+                    const recipes = data.results
+                    // Call the function to display recipes
+                    displayRecipes(recipes, page, itemPerPage); // Wyświetl tylko 8 przepisów na stronę
+
+                    // Generate pagination
+                    generatePagination(recipes.length, page, itemPerPage);
+                }
+            },
+            error: function (error) {
+                Swal.fire({
+                    "showConfirmButton": true,
+                    "timer": 4000,
+                    "allowOutsideClick": true,
+                    "confirmButtonText": "Close",
+                    "text": error.responseJSON.message,
+                    "timerProgressBar": "true",
+                    "icon": "error",
+                    "title": 'Request Failed',
+                })
+            }
+        });
+    }
+
+    // Function to display recipes with pagination
+    function displayRecipes(recipes, currentPage, itemsPerPage) {
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedRecipes = recipes.slice(startIndex, endIndex);
+
+        const recipeContainer = $('#recipe-container');
+        recipeContainer.empty();
+
+        paginatedRecipes.forEach((recipe) => {
+            const recipeHTML = `
+                 <div class="col mb-4">
+                            <div class="card h-100" data-recipe-id="${recipe.id}">
+                                <img src="${recipe.image}" class="card-img-top" alt="...">
+                                <div class="card-body">
+                                    <h5 class="card-title">${recipe.title}</h5>
+                                    <div class="card-info">
+                                        <div class="card-time">
+                                            <i class="fa-regular fa-clock"></i>
+                                            <p class="card-text">${recipe.readyInMinutes} minutes</p>
+                                        </div>
+                                        <div class="card-portion">
+                                            <i class="fa-solid fa-utensils"></i>
+                                            <p class="card-text">${recipe.servings} portions</p>
+                                        </div>
+                                    </div>
+                                    <div class="card-calories">
+                                        <i class="fa-solid fa-fire"></i>
+                                        <p class="card-text">${recipe.nutrition.nutrients[0].amount} calories</p>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <a href="/recipe/${recipe.id}" class="btn btn-primary recipe-button">Zobacz przepis</a>
+                                    </div>
+                            </div>
+                        </div>
+            `;
+            recipeContainer.append(recipeHTML);
+        });
+    }
+
+    // Function to generate pagination
+    function generatePagination(totalResults, currentPage, itemsPerPage) {
+        const paginationContainer = $('#pagination-container');
+        paginationContainer.empty();
+
+        const totalPages = Math.ceil(totalResults / itemsPerPage);
+
+        const paginationHTML = [];
+        paginationHTML.push('<ul class="pagination justify-content-center">');
+        paginationHTML.push('<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">');
+        paginationHTML.push('<a class="page-link" href="#" data-page="' + (currentPage - 1) + '">Previous</a>');
+        paginationHTML.push('</li>');
+
+        for (let i = 1; i <= totalPages; i++) {
+            const activeClass = i === currentPage ? 'active' : '';
+            paginationHTML.push('<li class="page-item ' + activeClass + '">');
+            paginationHTML.push('<a class="page-link" href="#" data-page="' + i + '">' + i + '</a>');
+            paginationHTML.push('</li>');
+        }
+
+        paginationHTML.push('<li class="page-item ' + (currentPage === totalPages ? 'disabled' : '') + '">');
+        paginationHTML.push('<a class="page-link" href="#" data-page="' + (currentPage + 1) + '">Next</a>');
+        paginationHTML.push('</li>');
+        paginationHTML.push('</ul>');
+
+        paginationContainer.html(paginationHTML.join(''));
+
+        // Handling clicks on pagination pages
+        paginationContainer.find('.page-link').click(function (e) {
+            e.preventDefault();
+            const page = $(this).data('page');
+            getRecipes(page);
+        });
+    }
+
+    // Start by viewing the first page of recipes
+    getRecipes(1);
+
+
+    // Set card title height
     $(document).ready(function () {
-        // Znajdź wszystkie elementy card-title
+        // Find all card-title elements
         let cardTitles = $(".card-title");
 
-        // Znajdź największą wysokość card-title
+        // Find the greatest height of the card-title
         let maxHeight = 0;
         cardTitles.each(function () {
             let titleHeight = $(this).height();
@@ -159,16 +226,18 @@
             }
         });
 
-        // Ustaw wszystkim card-title największą wysokość
+        // Set all card-titles to the highest height
         cardTitles.height(maxHeight);
     });
 </script>
-
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
         integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
         crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
         integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
         crossorigin="anonymous"></script>
+{% load sweetify %}
+{% sweetify %}
 </body>
 </html>
+

@@ -2,14 +2,11 @@ import decimal
 import os
 
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.forms import UserCreationForm
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.http import JsonResponse
 from django.shortcuts import render, redirect
-from django.template.loader import render_to_string
-from django.utils.safestring import mark_safe
 from dotenv import load_dotenv
 from django.contrib import messages
+from sweetify import sweetify
+
 from .forms import CustomUserCreationForm
 from .models import UserProfile
 
@@ -100,8 +97,22 @@ def home(request):
     if response_popular.status_code == 200 and response_latest.status_code == 200:
         popular_recipes = response_popular.json()
         latest_recipes = response_latest.json()
+
         return render(request, 'home_page.html',
                       {'popular_recipes': popular_recipes, 'latest_recipes': latest_recipes, })
+
+    elif response_popular.status_code == 402:
+        sweetify.error(request, 'Request Failed',
+                       text=response_popular.json()['message'],
+                       button='Close', timer=4000, timerProgressBar='true')
+        return render(request, 'home_page.html')
+
+    elif response_latest.status_code == 402:
+        sweetify.error(request, 'Request Failed',
+                       text=response_latest.json()['message'],
+                       button='Close', timer=4000, timerProgressBar='true')
+        return render(request, 'home_page.html')
+
     else:
         return render(request, 'home_page.html')
 
@@ -109,40 +120,33 @@ def home(request):
 def recipe(request):
     # Get API key environment variable
     api_key = os.getenv('SPOONACULAR_API_KEY')
+    api_question = 'initial'
+    section_title = 'Popular recipes'
 
-    # Id's from random to put them into another request with nutrition
-    random_ids = ['638248', '647634', '639411', '1055614', '645145', '633754', '664501', '638199', '641794', '665616',
-                  '642648', '661757', '640856', '634605', '665721', '715588', '641727', '660231', '764752', '652393']
+    # ID's from random to put them into another request with nutrition
+    random_ids = ['638248', '647634', '639411', '1055614', '645145', '633754', '664501', '638199', '641794', '665616']
     ids_string = ','.join(map(str, random_ids))
 
     recipes_url = f'https://api.spoonacular.com/recipes/informationBulk?ids={ids_string}&includeNutrition=true&apiKey=' + api_key
-    response_recieps = requests.get(recipes_url)
 
-    if response_recieps.status_code == 200:
-        recipes = response_recieps.json()
+    if request.method == 'POST':
+        if 'soup' in request.POST:
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number=12&type=soup&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            section_title = 'Soup Recipes'
 
-        paginator = Paginator(recipes, 8)  # Liczba przepisów na stronę
-        page = request.GET.get('page')
-        recipes = paginator.get_page(page)
+        elif 'main_course' in request.POST:
+            section_title = 'Main Course Recipes'
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number=12&type=main course&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
 
-        if request.method == 'POST':
-            if 'soup' in request.POST:
-                recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number=16&type=soup&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
-                response_recieps = requests.get(recipes_url)
-                recipes = response_recieps.json()
-                recipes = recipes['results']
-                paginator = Paginator(recipes, 8)  # Liczba przepisów na stronę
-                page = request.GET.get('page')
-                recipes = paginator.get_page(page)
-                return render(request, 'recipe.html', {'recipes': recipes, 'section_title': 'Soup recipes'})
+        return render(request, 'recipe.html', {'recipes_url': recipes_url, 'section_title': section_title})
 
-        context = {
-            'recipes': recipes,
-            'section_title': 'Popular recipes'
-        }
-        return render(request, 'recipe.html', context)
-    else:
-        return render(request, 'recipe.html')
+    context = {
+        'api_key': api_key,
+        'api_question': api_question,
+        'recipes_url': recipes_url,
+        'section_title': section_title,
+    }
+    return render(request, 'recipe.html', context)
 
 
 def recipe_detail(request, recipe_id):
@@ -154,48 +158,75 @@ def recipe_detail(request, recipe_id):
     similar_url = f'https://api.spoonacular.com/recipes/{recipe_id}/similar?number=4&apiKey=' + api_key
     response_similar = requests.get(similar_url)
 
-    recipe_similar = response_similar.json()
+    if response_recipe.status_code == 200 and response_similar.status_code == 200:
+        recipe_similar = response_similar.json()
 
-    similar_ids = []
-    for recipe in recipe_similar:
-        similar_ids.append(recipe['id'])
-    ids_string = ','.join(map(str, similar_ids))
-    similar_recipes_url = f'https://api.spoonacular.com/recipes/informationBulk?ids={ids_string}&includeNutrition=true&apiKey=' + api_key
-    response_similar_recipes = requests.get(similar_recipes_url)
+        # Get similar recipes id
+        similar_ids = []
+        for recipe in recipe_similar:
+            similar_ids.append(recipe['id'])
+        ids_string = ','.join(map(str, similar_ids))
+        similar_recipes_url = f'https://api.spoonacular.com/recipes/informationBulk?ids={ids_string}&includeNutrition=true&apiKey=' + api_key
+        response_similar_recipes = requests.get(similar_recipes_url)
 
-    if response_recipe.status_code == 200 and response_similar.status_code == 200 and response_similar_recipes.status_code == 200:
-        recipe_detail = response_recipe.json()
-        similar_recipes = response_similar_recipes.json()
+        if response_similar_recipes.status_code == 200:
+            recipe_detail = response_recipe.json()
+            similar_recipes = response_similar_recipes.json()
 
-        desired_nutrients = ['Calories', 'Protein', 'Fat', 'Carbohydrates', 'Fiber', 'Sugar']
-        selected_nutrients = [nutrient for nutrient in recipe_detail['nutrition']['nutrients'] if
-                              nutrient['name'] in desired_nutrients]
+            desired_nutrients = ['Calories', 'Protein', 'Fat', 'Carbohydrates', 'Fiber', 'Sugar']
+            selected_nutrients = [nutrient for nutrient in recipe_detail['nutrition']['nutrients'] if
+                                  nutrient['name'] in desired_nutrients]
 
-        # Get recipe steps
-        recipe_steps = []
-        for instruction in recipe_detail['analyzedInstructions']:
-            for step in instruction['steps']:
-                recipe_steps.append(step)
+            # Get recipe steps
+            recipe_steps = []
+            for instruction in recipe_detail['analyzedInstructions']:
+                for step in instruction['steps']:
+                    recipe_steps.append(step)
 
-        product_matches = recipe_detail['winePairing']['productMatches'][0]
+            try:
+                product_matches = recipe_detail['winePairing']['productMatches'][0]
+                # Set product matches price
+                product_matches_price = product_matches['price']
+                product_matches_price = product_matches_price.replace('$', '')
+                product_matches_price = decimal.Decimal(product_matches_price)
+                product_matches_price = round(product_matches_price, 2)
+                product_matches_price = str(product_matches_price) + ' $'
 
-        # Set product matches price
-        product_matches_price = product_matches['price']
-        product_matches_price = product_matches_price.replace('$', '')
-        product_matches_price = decimal.Decimal(product_matches_price)
-        product_matches_price = round(product_matches_price, 2)
-        product_matches_price = str(product_matches_price) + ' $'
+            except IndexError:
+                product_matches = None
+                product_matches_price = None
 
-        context = {
-            'recipe_detail': recipe_detail,
-            'selected_nutrients': selected_nutrients,
-            'recipe_steps': recipe_steps,
-            'similar_recipes': similar_recipes,
-            'product_matches': product_matches,
-            'product_matches_price': product_matches_price,
+            context = {
+                'recipe_detail': recipe_detail,
+                'selected_nutrients': selected_nutrients,
+                'recipe_steps': recipe_steps,
+                'similar_recipes': similar_recipes,
+                'product_matches': product_matches,
+                'product_matches_price': product_matches_price,
 
-        }
-        return render(request, 'recipe_detail.html', context)
+            }
+            return render(request, 'recipe_detail.html', context)
+
+        elif response_similar_recipes.status_code == 402:
+            sweetify.error(request, 'Request Failed',
+                           text=response_similar_recipes.json()['message'],
+                           button='Close', timer=4000, timerProgressBar='true')
+            return render(request, 'recipe_detail.html')
+
+        else:
+            return render(request, 'recipe_detail.html')
+
+    elif response_recipe.status_code == 402:
+        sweetify.error(request, 'Request Failed',
+                       text=response_recipe.json()['message'],
+                       button='Close', timer=4000, timerProgressBar='true')
+        return render(request, 'recipe_detail.html')
+
+    elif response_similar.status_code == 402:
+        sweetify.error(request, 'Request Failed',
+                       text=response_similar.json()['message'],
+                       button='Close', timer=4000, timerProgressBar='true')
+        return render(request, 'recipe_detail.html')
 
     else:
         return render(request, 'recipe_detail.html')
