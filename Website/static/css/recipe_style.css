@@ -73,6 +73,10 @@
     box-shadow: 0 0 0 0.25rem var(--color-tradewind);
 }
 
+.active_search {
+    background-color: var(--color-isabelline-light) !important;
+}
+
 @media screen and (max-width: 1300px) {
     .custom-search {
         width: 75%;

@@ -122,6 +122,10 @@ def recipe(request):
     api_key = os.getenv('SPOONACULAR_API_KEY')
     api_question = 'initial'
     section_title = 'Popular recipes'
+    search_button = None
+
+    # Number of recipes to get from api request
+    recipes_number = 12
 
     # ID's from random to put them into another request with nutrition
     random_ids = ['638248', '647634', '639411', '1055614', '645145', '633754', '664501', '638199', '641794', '665616']
@@ -131,20 +135,64 @@ def recipe(request):
 
     if request.method == 'POST':
         if 'soup' in request.POST:
-            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number=12&type=soup&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number={recipes_number}&type=soup&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
             section_title = 'Soup Recipes'
+            search_button = 'soup'
 
         elif 'main_course' in request.POST:
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number={recipes_number}&type=main course&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
             section_title = 'Main Course Recipes'
-            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number=12&type=main course&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            search_button = 'main_course'
 
-        return render(request, 'recipe.html', {'recipes_url': recipes_url, 'section_title': section_title})
+        elif 'side_dish' in request.POST:
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number={recipes_number}&type=side dish&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            section_title = 'Side Dish Recipes'
+            search_button = 'side_dish'
+
+        elif 'dessert' in request.POST:
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number={recipes_number}&type=dessert&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            section_title = 'Dessert Recipes'
+            search_button = 'dessert'
+
+        elif 'salad' in request.POST:
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number={recipes_number}&type=salad&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            section_title = 'Salad Recipes'
+            search_button = 'salad'
+
+        elif 'appetizer' in request.POST:
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number={recipes_number}&type=appetizer&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            section_title = 'Appetizer Recipes'
+            search_button = 'appetizer'
+
+        elif 'breakfast' in request.POST:
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number={recipes_number}&type=breakfast&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            section_title = 'Breakfast Recipes'
+            search_button = 'breakfast'
+
+        elif 'sauce' in request.POST:
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number={recipes_number}&type=sauce&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            section_title = 'Sauce Recipes'
+            search_button = 'sauce'
+
+        elif 'drink' in request.POST:
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number={recipes_number}&type=drink&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            section_title = 'Drink Recipes'
+            search_button = 'drink'
+
+        elif 'search_recipe_query' in request.POST:
+            search_query = request.POST['search_query']
+            recipes_url = f'https://api.spoonacular.com/recipes/complexSearch?number={recipes_number}&query={search_query}&addRecipeInformation=true&addRecipeNutrition=true&fillIngredients=true&apiKey=' + api_key
+            section_title = 'Filtered Recipes'
+
+        return render(request, 'recipe.html',
+                      {'recipes_url': recipes_url, 'section_title': section_title, 'search_button': search_button, })
 
     context = {
         'api_key': api_key,
         'api_question': api_question,
         'recipes_url': recipes_url,
         'section_title': section_title,
+        'search_button': search_button,
     }
     return render(request, 'recipe.html', context)
 

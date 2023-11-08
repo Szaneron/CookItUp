@@ -34,12 +34,15 @@
                 <div class="col text-center d-block justify-content-center">
                     <div class="d-block justify-content-center">
                         <h3>Search your Recipe</h3>
-                        <div class="input-group input-group-lg mx-auto custom-search">
-                            <input type="search" class="form-control"/>
-                            <button type="button" class="btn search-button">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="input-group input-group-lg mx-auto custom-search">
+                                <input type="search" name="search_query" class="form-control"/>
+                                <button type="submit" name="search_recipe_query" class="btn search-button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
                     </div>
 
                 </div>
@@ -53,15 +56,19 @@
                     <div class="d-flex justify-content-center flex-wrap gap-3">
                         <form method="post">
                             {% csrf_token %}
-                            <button class="swiper-slide" name="soup" type="submit">soup</button>
-                            <button class="swiper-slide" name="main_course" type="submit">main course</button>
-                            <button class="swiper-slide" name="side_dish" type="submit">side dish</button>
-                            <button class="swiper-slide" name="dessert" type="submit">dessert</button>
-                            <button class="swiper-slide" name="salad" type="submit">salad</button>
-                            <button class="swiper-slide" name="appetizer" type="submit">appetizer</button>
-                            <button class="swiper-slide" name="breakfast" type="submit">breakfast</button>
-                            <button class="swiper-slide" name="sauce" type="submit">sauce</button>
-                            <button class="swiper-slide" name="drink" type="submit">drink</button>
+                            <button class="swiper-slide" id="soup" name="soup" type="submit">soup</button>
+                            <button class="swiper-slide" id="main_course" name="main_course" type="submit">main course
+                            </button>
+                            <button class="swiper-slide" id="side_dish" name="side_dish" type="submit">side dish
+                            </button>
+                            <button class="swiper-slide" id="dessert" name="dessert" type="submit">dessert</button>
+                            <button class="swiper-slide" id="salad" name="salad" type="submit">salad</button>
+                            <button class="swiper-slide" id="appetizer" name="appetizer" type="submit">appetizer
+                            </button>
+                            <button class="swiper-slide" id="breakfast" name="breakfast" type="submit">breakfast
+                            </button>
+                            <button class="swiper-slide" id="sauce" name="sauce" type="submit">sauce</button>
+                            <button class="swiper-slide" id="drink" name="drink" type="submit">drink</button>
                         </form>
                     </div>
                 </div>
@@ -89,6 +96,12 @@
     const active_link = document.getElementById('nav-recipe');
     active_link.classList.add('active', 'fw-bold');
 
+    search_button = '{{ search_button }}'
+    if (search_button !== 'None') {
+        const active_search = document.getElementById(search_button)
+        active_search.classList.add('active_search')
+    }
+
     const api_key = '{{api_key}}';
     const api_question = '{{api_question}}';
     const djangoUrl = "{{recipes_url}}";
@@ -110,11 +123,17 @@
                     generatePagination(recipes.length, page, itemPerPage);
                 } else {
                     const recipes = data.results
-                    // Call the function to display recipes
-                    displayRecipes(recipes, page, itemPerPage); // Wyświetl tylko 8 przepisów na stronę
+                    console.log(recipes.length)
+                    if (recipes.length > 0) {
+                        // Call the function to display recipes
+                        displayRecipes(recipes, page, itemPerPage); // Wyświetl tylko 8 przepisów na stronę
 
-                    // Generate pagination
-                    generatePagination(recipes.length, page, itemPerPage);
+                        // Generate pagination
+                        generatePagination(recipes.length, page, itemPerPage);
+                    } else {
+                        // Call the function to display message
+                        dispalyNoRecipesFound();
+                    }
                 }
             },
             error: function (error) {
@@ -130,6 +149,14 @@
                 })
             }
         });
+    }
+
+    // Function to display message if no recipes found
+    function dispalyNoRecipesFound() {
+        const recipeContainer = $('#recipe-container');
+        const messageHTML = `<p>No recipes found matching your query</p>`
+
+        recipeContainer.append(messageHTML);
     }
 
     // Function to display recipes with pagination
