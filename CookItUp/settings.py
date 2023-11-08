@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'sweetify',
     'widget_tweaks',
     'Website',
     'django.contrib.admin',

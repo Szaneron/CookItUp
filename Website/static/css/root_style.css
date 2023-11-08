@@ -42,3 +42,12 @@ a {
 .secondary {
     color: var(--color-isabelline-light);
 }
+
+div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm {
+    background-color: var(--color-eden) !important;
+}
+
+div:where(.swal2-container) button:where(.swal2-styled).swal2-confirm:focus {
+    box-shadow: none !important;
+}
+
