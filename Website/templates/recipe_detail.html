@@ -61,10 +61,19 @@
                 </div>
             </div>
         </div>
-        <div class="row mt-3 g-4 g-lg-5">
+        <div class="row mt-3 g-4 g-lg-5  ingredient-section">
             <div class="col-12 col-lg-5 mt-0">
                 <div class="mb-4">
-                    <h2 class="mb-4 custom-h2">Ingredients</h2>
+                    <div class="add-to-cart mb-4">
+                        <h2 class="custom-h2 mb-0">Ingredients</h2>
+                        <form method="post">
+                            {% csrf_token %}
+                            <button class="add-to-cart-button p-1" name="add_to_cart" type="submit">
+                                Add to cart
+                                <i class="fa-solid fa-cart-shopping"></i>
+                            </button>
+                        </form>
+                    </div>
                     {% for ingredient in recipe_detail.extendedIngredients %}
                         <div class="row mb-1">
                             <div class="col ingredient-container">

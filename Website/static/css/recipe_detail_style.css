@@ -36,6 +36,30 @@
     border-radius: 50%;
 }
 
+.add-to-cart {
+    display: flex;
+    justify-content: space-between;
+}
+
+.add-to-cart-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--color-eden);
+    background-color: var(--color-white);
+    border-bottom: 1px solid;
+    padding-right: 0.5rem !important;
+    padding-left: 0.5rem !important;
+    transition: all 0.3s ease;
+}
+
+.add-to-cart-button:hover {
+    color: var(--color-white);
+    border-radius: 0.5rem;
+    background-color: var(--color-eden)
+}
+
 .ingredient-container {
     display: grid !important;
     align-items: center;
@@ -72,4 +96,10 @@
     background-color: var(--color-isabelline-light);
     padding: 0.3rem 1.5rem;
     border-radius: 2rem;
+}
+
+@media screen and (max-width: 768px) {
+    .ingredient-section {
+        margin-top: 2rem !important;
+    }
 }

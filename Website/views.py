@@ -1,4 +1,5 @@
 import decimal
+import json
 import os
 
 from django.contrib.auth import authenticate, login, logout
@@ -198,6 +199,8 @@ def recipe(request):
 
 
 def recipe_detail(request, recipe_id):
+    user_profile = request.user.userprofile
+
     # Get API key environment variable
     api_key = os.getenv('SPOONACULAR_API_KEY')
     recipe_url = f'https://api.spoonacular.com/recipes/{recipe_id}/information?includeNutrition=true&apiKey=' + api_key
@@ -244,6 +247,57 @@ def recipe_detail(request, recipe_id):
                 product_matches = None
                 product_matches_price = None
 
+            except KeyError:
+                product_matches = recipe_detail['winePairing']['productMatches'][0]
+                product_matches_price = None
+
+            if request.method == 'POST':
+                if 'add_to_cart' in request.POST:
+                    items_name_list = []
+                    print('Adding to cart')
+                    ingredients = recipe_detail['extendedIngredients']
+                    for ingredient in ingredients:
+                        ingredient_amount = ingredient['measures']['metric']['amount']
+                        ingredient_unit = ingredient['measures']['metric']['unitLong']
+                        ingredient_name = ingredient['name']
+
+                        combined_string_item = f'{ingredient_amount} {ingredient_unit} {ingredient_name}'
+                        items_name_list.append(combined_string_item)
+
+                    add_item_success_request_count = 0
+                    add_item_failed_request_messages = []
+
+                    for item in items_name_list:
+                        item_to_add = {'item': item, 'parse': True}
+
+                        add_to_shopping_list_url = f'https://api.spoonacular.com/mealplanner/{user_profile.spoonacular_username}/shopping-list/items?hash={user_profile.spoonacular_hash}&apiKey={api_key}'
+                        response_add_to_shopping_list = requests.post(add_to_shopping_list_url, json=item_to_add)
+
+                        if response_add_to_shopping_list.status_code == 200:
+                            add_item_success_request_count += 1
+                        else:
+                            add_item_failed_request_messages.append(
+                                f"{response_add_to_shopping_list.status_code}: {response_add_to_shopping_list.text}")
+
+                    if add_item_success_request_count == len(items_name_list):
+                        sweetify.success(request, 'Success',
+                                         text='The ingredients have been added to the shopping list',
+                                         button='Close', timer=4000, timerProgressBar='true')
+                    else:
+                        sweetify.error(request, 'Request Failed',
+                                       text=add_item_failed_request_messages[0],
+                                       button='Close', timer=4000, timerProgressBar='true')
+
+                context = {
+                    'recipe_detail': recipe_detail,
+                    'selected_nutrients': selected_nutrients,
+                    'recipe_steps': recipe_steps,
+                    'similar_recipes': similar_recipes,
+                    'product_matches': product_matches,
+                    'product_matches_price': product_matches_price,
+                }
+                return render(request, 'recipe_detail.html', context)
+
             context = {
                 'recipe_detail': recipe_detail,
                 'selected_nutrients': selected_nutrients,
@@ -251,8 +305,8 @@ def recipe_detail(request, recipe_id):
                 'similar_recipes': similar_recipes,
                 'product_matches': product_matches,
                 'product_matches_price': product_matches_price,
-
             }
+
             return render(request, 'recipe_detail.html', context)
 
         elif response_similar_recipes.status_code == 402:
@@ -278,3 +332,49 @@ def recipe_detail(request, recipe_id):
 
     else:
         return render(request, 'recipe_detail.html')
+
+
+def shopping_list(request):
+    user_profile = request.user.userprofile
+
+    def get_all_shopping_list_items_id():
+        ids_list = []
+        for _ in shopping_list['aisles']:
+            for _ in _['items']:
+                ids_list.append(_['id'])
+
+        return ids_list
+
+    def clear_shopping_list(shopping_list_ids):
+        positive_status_codes_count = 0
+        error_message = ''
+        for _ in shopping_list_ids:
+            delete_from_shopping_list_url = f'https://api.spoonacular.com/mealplanner/{user_profile.spoonacular_username}/shopping-list/items/{_}?hash={user_profile.spoonacular_hash}&apiKey={api_key}'
+            response_delete_from_shopping_list = requests.delete(delete_from_shopping_list_url)
+
+            if response_delete_from_shopping_list.status_code == 200:
+                positive_status_codes_count += 1
+            else:
+                error_message = response_delete_from_shopping_list.json()['message']
+
+        if positive_status_codes_count == len(shopping_list_ids):
+            sweetify.success(request, 'Success',
+                             text='The list has been cleared',
+                             button='Close', timer=4000, timerProgressBar='true')
+        else:
+            sweetify.error(request, 'Request Failed',
+                           text=error_message,
+                           button='Close', timer=4000, timerProgressBar='true')
+
+    # Get API key environment variable
+    api_key = os.getenv('SPOONACULAR_API_KEY')
+    shopping_list_url = f'https://api.spoonacular.com/mealplanner/{user_profile.spoonacular_username}/shopping-list?hash={user_profile.spoonacular_hash}&apiKey={api_key}'
+    response_shopping_list = requests.get(shopping_list_url)
+
+    if response_shopping_list.status_code == 200:
+        shopping_list = response_shopping_list.json()
+
+        shopping_list_ids = get_all_shopping_list_items_id()
+        clear_shopping_list(shopping_list_ids)
+
+    return render(request, 'shopping_list.html')
