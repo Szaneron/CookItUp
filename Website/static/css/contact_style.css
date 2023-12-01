@@ -1,0 +1,15 @@
+@import "root_style.css";
+@import "navbar_style.css";
+@import "home_page_style.css";
+@import "footer_style.css";
+
+.label_color {
+    color: var(--color-eden)
+}
+
+.send-message {
+    background-color: var(--color-eden);
+    color: var(--color-white);
+    border-radius: 20px;
+    padding: 0.5rem 2rem;
+}
