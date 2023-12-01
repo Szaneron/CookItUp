@@ -15,10 +15,10 @@
                     <a class="nav-link" id="nav-recipe" href="{% url 'recipe' %}">Recipes</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="shopping-list" href="{% url 'shopping_list' %}">Shopping list</a>
+                    <a class="nav-link" id="nav-shopping-list" href="{% url 'shopping_list' %}">Shopping list</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" id="nav-contact" href="#">Contacts</a>
+                    <a class="nav-link" id="nav-contact" href="{% url 'contact' %}">Contacts</a>
                 </li>
             </ul>
             <ul class="navbar-nav  mb-2 mb-lg-0">{% if user.is_authenticated %}

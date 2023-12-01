@@ -14,17 +14,86 @@
 <div class="container">
     {% include 'navbar.html' %}
     <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 col-lg-6 mt-0 shopping-list">
+                <div>
+                    <h1 class="mb-3 custom-h2">Your Shopping List</h1>
+                    <p>Don't waste time searching in the store! Download your shopping list and have control over each
+                        product. And when you're done shopping, use the "Clear Shopping List" button to start over.</p>
+                    <div>
+                        <form method="post" class="buttons-list">
+                            {% csrf_token %}
+                            <button class="download-button" name="download_pdf">Download Shopping List
+                            </button>
+                            <button class="clear-button" name="clear_shopping_list">Clear Shopping List</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6 mt-0">
+                <img class="img-fluid banner-image" src="{% static 'images/shopping_list.jpg' %}" alt="Banner image">
+            </div>
+        </div>
 
+        {% if shopping_list %}
+            <div class="row mt-4 mb-5">
+                <div class="col-12 col-lg-4 mt-0">
+                    <h2 class="mb-3 custom-h2">Aisles</h2>
+                    {% for aisle in shopping_list %}
+                        <p>{{ aisle.aisle }}</p>
+                    {% endfor %}
+                </div>
 
+                <div class="col-12 col-lg-8 mt-0">
+                    <h2 class="mb-3 custom-h2">Shopping List</h2>
+                    <table class="table table-striped">
+                        <thead>
+                        <tr class="table-heading">
+                            <th scope="col"></th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Amount</th>
+                            <th scope="col">Unit</th>
+                            <th scope="col"></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for aisle in shopping_list %}
+                            {% for item in aisle.items %}
+                                <tr>
+                                    <td></td>
+                                    <td>{{ item.name }}</td>
+                                    <td>{{ item.measures.metric.amount|floatformat:2 }}</td>
+                                    <td>{{ item.measures.metric.unit }}</td>
+                                    <td class="text-center">
+                                        <form method="post">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="item_id" value="{{ item.id }}"/>
+                                            <button class="delete-item-button text-danger" name="delete_item"><i
+                                                    class="fa-solid fa-minus"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div class="no-data mt-4 text-center">
+                <h3>Your shopping list is empty</h3>
+            </div>
+        {% endif %}
+
+        {% include 'footer.html' %}
     </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    const active_link = document.getElementById('shopping-list');
+    const active_link = document.getElementById('nav-shopping-list');
     active_link.classList.add('active', 'fw-bold');
-
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"

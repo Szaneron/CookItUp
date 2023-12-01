@@ -3,3 +3,59 @@
 @import "home_page_style.css";
 @import "footer_style.css";
 
+.shopping-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.buttons-list {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.download-button {
+    background-color: var(--color-eden);
+    border-radius: 20px;
+    padding: 0.5rem 1.5rem;
+    color: var(--color-white);
+}
+
+.clear-button {
+    background-color: var(--color-almond-frost);
+    border-radius: 20px;
+    padding: 0.5rem 1.5rem;
+    color: var(--color-white);
+}
+
+.table-heading {
+    background-color: var(--color-eden);
+    color: var(--color-white);
+}
+
+table {
+    width: 100%;
+}
+
+table th, table td {
+    height: 2rem;
+}
+
+table tbody {
+    counter-reset: rowNumber;
+}
+
+table tbody tr {
+    counter-increment: rowNumber;
+}
+
+table tbody tr td:first-child::before {
+    content: counter(rowNumber);
+    min-width: 1em;
+    margin-right: 0.5em;
+}
+
+.delete-item-button {
+    background-color: transparent;
+}

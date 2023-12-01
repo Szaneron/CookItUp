@@ -1,17 +1,27 @@
 import decimal
-import json
 import os
+from io import BytesIO
 
+import requests
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from dotenv import load_dotenv
-from django.contrib import messages
+from reportlab.lib import colors
+from reportlab.lib.colors import HexColor
+from reportlab.lib.enums import TA_LEFT
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Paragraph
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Spacer
 from sweetify import sweetify
 
 from .forms import CustomUserCreationForm
 from .models import UserProfile
-
-import requests
 
 load_dotenv()
 
@@ -105,13 +115,13 @@ def home(request):
     elif response_popular.status_code == 402:
         sweetify.error(request, 'Request Failed',
                        text=response_popular.json()['message'],
-                       button='Close', timer=4000, timerProgressBar='true')
+                       button='Close')
         return render(request, 'home_page.html')
 
     elif response_latest.status_code == 402:
         sweetify.error(request, 'Request Failed',
                        text=response_latest.json()['message'],
-                       button='Close', timer=4000, timerProgressBar='true')
+                       button='Close')
         return render(request, 'home_page.html')
 
     else:
@@ -286,7 +296,7 @@ def recipe_detail(request, recipe_id):
                     else:
                         sweetify.error(request, 'Request Failed',
                                        text=add_item_failed_request_messages[0],
-                                       button='Close', timer=4000, timerProgressBar='true')
+                                       button='Close')
 
                 context = {
                     'recipe_detail': recipe_detail,
@@ -312,7 +322,7 @@ def recipe_detail(request, recipe_id):
         elif response_similar_recipes.status_code == 402:
             sweetify.error(request, 'Request Failed',
                            text=response_similar_recipes.json()['message'],
-                           button='Close', timer=4000, timerProgressBar='true')
+                           button='Close')
             return render(request, 'recipe_detail.html')
 
         else:
@@ -321,13 +331,13 @@ def recipe_detail(request, recipe_id):
     elif response_recipe.status_code == 402:
         sweetify.error(request, 'Request Failed',
                        text=response_recipe.json()['message'],
-                       button='Close', timer=4000, timerProgressBar='true')
+                       button='Close')
         return render(request, 'recipe_detail.html')
 
     elif response_similar.status_code == 402:
         sweetify.error(request, 'Request Failed',
                        text=response_similar.json()['message'],
-                       button='Close', timer=4000, timerProgressBar='true')
+                       button='Close')
         return render(request, 'recipe_detail.html')
 
     else:
@@ -337,9 +347,9 @@ def recipe_detail(request, recipe_id):
 def shopping_list(request):
     user_profile = request.user.userprofile
 
-    def get_all_shopping_list_items_id():
+    def get_all_shopping_list_items_id(shopping_list):
         ids_list = []
-        for _ in shopping_list['aisles']:
+        for _ in shopping_list:
             for _ in _['items']:
                 ids_list.append(_['id'])
 
@@ -364,7 +374,129 @@ def shopping_list(request):
         else:
             sweetify.error(request, 'Request Failed',
                            text=error_message,
-                           button='Close', timer=4000, timerProgressBar='true')
+                           button='Close')
+
+    class PageNumCanvas(canvas.Canvas):
+        """
+        A class that handles page numbering.
+        """
+
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.pages = []
+
+        def showPage(self):
+            self.pages.append(dict(self.__dict__))
+            self._startPage()
+
+        def save(self):
+            num_pages = len(self.pages)
+            for page_num, page in enumerate(self.pages, start=1):
+                self.__dict__.update(page)
+                self.draw_page_number(page_num, num_pages)
+                super().showPage()
+
+            super().save()
+
+        def draw_page_number(self, page_num, total_pages):
+            page_text = f"Strona {page_num}/{total_pages}"
+            text_width = self.stringWidth(page_text, 'monteserrat_regular', 10)
+            self.setFont('monteserrat_regular', 10)
+            self.drawRightString(587 - text_width, 50, page_text)  # Adjusted coordinates
+
+    def generate_shopping_list_pdf(shopping_list):
+        # Register fonts
+        pdfmetrics.registerFont(TTFont('monteserrat_regular', 'Website/static/fonts/Montserrat_Regular_400.ttf'))
+        pdfmetrics.registerFont(TTFont('monteserrat_bold', 'Website/static/fonts/Montserrat_SemiBold_600.ttf'))
+
+        # Define data and headers
+        data = [['', 'Name', 'Amount', 'Unit']]
+        lp = 1
+        for aisle in shopping_list:
+            for item in aisle['items']:
+                data.append(
+                    [str(lp), item['name'], item['measures']['metric']['amount'], item['measures']['metric']['unit']])
+                lp += 1
+
+        left_margin = 75
+        right_margin = 75
+
+        # Calculate the page width minus margins
+        usable_width = A4[0] - (left_margin + right_margin)
+
+        # Proportionally divide width for columns
+        num_columns = 4
+        col_widths = [usable_width / num_columns] * num_columns
+
+        # Assign width for first and second column
+        col_widths[0] = col_widths[0] * 0.35
+        col_widths[1] = col_widths[1] * 2
+
+        # Style settings
+        style = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'monteserrat_bold'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 3),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ])
+
+        # Style for data
+        style_data = TableStyle([
+            ('FONTNAME', (0, 0), (-1, -1), 'monteserrat_regular'),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ])
+
+        # Create a table
+        stock_table = Table(data, colWidths=col_widths)
+        stock_table.setStyle(style)
+        stock_table.setStyle(style_data)
+
+        # Add a style for the title
+        style_title = ParagraphStyle(
+            'CustomTitle',
+            parent=getSampleStyleSheet()['Heading2'],
+            fontName='monteserrat_bold',
+            fontSize=14,
+            alignment=TA_LEFT,
+        )
+
+        # Add a style for the platform
+        style_platform = ParagraphStyle(
+            'CustomPlatform',
+            parent=getSampleStyleSheet()['Heading1'],
+            fontName='monteserrat_bold',
+            fontSize=20,
+            alignment=TA_LEFT,
+            textColor=HexColor('#247158'),
+        )
+
+        platform = Paragraph("CookItUp", style_platform)
+        title = Paragraph("Your Shopping List", style_title)
+
+        # Create content
+        content = [platform, title, Spacer(1, 10), stock_table, Spacer(1, 10)]
+
+        # Create PDF file in memory
+        buffer = BytesIO()
+
+        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=50, bottomMargin=50, leftMargin=50, rightMargin=50)
+        doc.title = "CookItUp_shopping_list"
+        doc.build(content, canvasmaker=PageNumCanvas)
+
+        # Set appropriate headers for automatic downloading
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="CookItUp_shopping_list.pdf"'
+
+        # Save the contents of the response buffer
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
+        return response
 
     # Get API key environment variable
     api_key = os.getenv('SPOONACULAR_API_KEY')
@@ -373,8 +505,69 @@ def shopping_list(request):
 
     if response_shopping_list.status_code == 200:
         shopping_list = response_shopping_list.json()
+        shopping_list = shopping_list['aisles']
 
-        shopping_list_ids = get_all_shopping_list_items_id()
-        clear_shopping_list(shopping_list_ids)
+        if request.method == 'POST':
+            if 'delete_item' in request.POST:
+                item_id = request.POST.get('item_id')
+                print(item_id)
+                delete_from_shopping_list_url = f'https://api.spoonacular.com/mealplanner/{user_profile.spoonacular_username}/shopping-list/items/{item_id}?hash={user_profile.spoonacular_hash}&apiKey={api_key}'
+                response_delete_from_shopping_list = requests.delete(delete_from_shopping_list_url)
+                print(response_delete_from_shopping_list)
+                if response_delete_from_shopping_list.status_code == 200:
+                    sweetify.success(request, 'Success',
+                                     text='The item has been removed from your shopping list.',
+                                     button='Close', timer=2000, timerProgressBar='true')
+                    return redirect(request.META['HTTP_REFERER'])
+                else:
+                    sweetify.error(request, 'Request Failed',
+                                   text=response_delete_from_shopping_list.json()['message'],
+                                   button='Close')
+                    return redirect(request.META['HTTP_REFERER'])
+
+            if 'download_pdf' in request.POST:
+                if shopping_list:
+                    return_pdf_response = generate_shopping_list_pdf(shopping_list)
+                    return return_pdf_response
+                else:
+                    sweetify.warning(request, 'Warning',
+                                     text='Your shopping list is empty',
+                                     button='Close')
+                    return redirect(request.META['HTTP_REFERER'])
+
+            if 'clear_shopping_list' in request.POST:
+                if shopping_list:
+                    shopping_list_ids = get_all_shopping_list_items_id(shopping_list)
+                    clear_shopping_list(shopping_list_ids)
+                    return redirect(request.META['HTTP_REFERER'])
+                else:
+                    sweetify.warning(request, 'Warning',
+                                     text='Your shopping list is empty',
+                                     button='Close')
+                    return redirect(request.META['HTTP_REFERER'])
+        context = {
+            'user_profile': user_profile,
+            'api_key': api_key,
+            'shopping_list': shopping_list,
+        }
+
+        return render(request, 'shopping_list.html', context)
+
+    sweetify.error(request, 'Request Failed',
+                   text=response_shopping_list.json()['message'],
+                   button='Close')
 
     return render(request, 'shopping_list.html')
+
+
+def contact(request):
+    if request.method == 'POST':
+        print('hmm')
+        if 'send_message' in request.POST:
+            print('working')
+            sweetify.success(request, 'Success',
+                             text='Message was sent.',
+                             button='Close', timer=2000, timerProgressBar='true')
+            return redirect(request.META['HTTP_REFERER'])
+
+    return render(request, 'contact.html')
