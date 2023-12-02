@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/footer_subpage.css' %}">
+    <title>CockItUp</title>
+</head>
+<body>
+<div class="container">
+    {% include 'navbar.html' %}
+    <div class="container-fluid">
+        <h1 class="mt-5">Functionality Page: Explore the Features</h1>
+        <p>Welcome to our Recipe Website! Discover a world of culinary delights with our user-friendly and feature-rich
+            platform designed to enhance your cooking experience.</p>
+        <div class="row">
+            <div class="col">
+                <p class="fw-bold fs-5 mt-3">1. Browse and Explore:</p>
+                <span>Easily navigate through an extensive collection of recipes sourced from the Spoonacular API.<br>
+                    Filter recipes by categories, dietary preferences, and more, making it simple to find the perfect dish for any occasion.</span>
+
+                <p class="fw-bold fs-5 mt-3">2. Recipe Details:</p>
+                <span>Dive into detailed recipe pages that provide step-by-step instructions, ingredients, and nutritional information.</span>
+
+                <p class="fw-bold fs-5 mt-3">3. Shopping List Management:</p>
+                <span>Create personalized shopping lists by adding ingredients from your favorite recipes with a single click.<br>
+                    Modify your shopping list as needed, removing items or adjusting quantities based on your preferences.<br>
+                    Effortlessly clear your shopping list with a single click, ensuring a fresh start for your next culinary adventure.</span>
+
+                <p class="fw-bold fs-5 mt-3">4. PDF Download:</p>
+                <span>Seamlessly download your customized shopping list in PDF format, making it convenient for your next grocery run.</span>
+
+                <p class="fw-bold fs-5 mt-3">5. Efficient Search:</p>
+                <span>Utilize our search functionality to find specific recipes, ingredients, or cuisines quickly.<br>
+                    Save time and energy by accessing the exact information you need with our efficient search feature.</span>
+
+                <p class="fw-bold fs-5 mt-3">6. User-Friendly Interface:</p>
+                <span>Enjoy a clean and intuitive interface designed to enhance your overall user experience.<br>
+                    Responsive design ensures compatibility across various devices, allowing you to access your favorite recipes anytime, anywhere.</span>
+
+                <p class="fw-bold fs-5 mt-3">8. Cleaning Up:</p>
+                <span>TFor questions, concerns, or issues, please contact us using the form available on the website.</span>
+
+
+                <p class="mt-5">Whether you're a seasoned chef or just starting your cooking journey, our Recipe Website
+                    is your go-to destination for culinary inspiration. Explore the features and make every meal a
+                    delightful experience!</p>
+            </div>
+        </div>
+
+        {% include 'footer.html' %}
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+        integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+        integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+        crossorigin="anonymous"></script>
+{% load sweetify %}
+{% sweetify %}
+</body>
+</html>
+

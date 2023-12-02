@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/footer_subpage.css' %}">
+    <title>CockItUp</title>
+</head>
+<body>
+<div class="container">
+    {% include 'navbar.html' %}
+    <div class="container-fluid">
+        <h1 class="mt-5">CookItUp Terms of Service:</h1>
+        <div class="row">
+            <div class="col">
+                <p class="fw-bold fs-5 mt-3">1. Purpose of the Service:</p>
+                <span>The service aims to provide users with a variety of culinary recipes.<br>
+                    Recipes are fetched from the Spoonacular API.</span>
+
+                <p class="fw-bold fs-5 mt-3">2. Terms of Use:</p>
+                <span>Use of the service implies acceptance of this terms of service.<br>
+                    Users agree to comply with the law and ethical standards while using the service.</span>
+
+                <p class="fw-bold fs-5 mt-3">3. Copyright:</p>
+                <span>Recipes fetched from the Spoonacular API are protected by copyright by the respective content provider.<br>
+                    Users have the right to use recipes for personal and non-commercial purposes only.</span>
+
+                <p class="fw-bold fs-5 mt-3">4. Liability:</p>
+                <span>The service is not responsible for the content provided by the Spoonacular API.<br>
+                    Users use the recipes at their own risk.</span>
+
+                <p class="fw-bold fs-5 mt-3">5. Prohibited Uses:</p>
+                <span>Prohibited uses include engaging in illegal, offensive, or infringing activities.<br>
+                    Copying, distributing, or modifying the content of the service without permission is strictly prohibited.</span>
+
+                <p class="fw-bold fs-5 mt-3">6. Personal Data:</p>
+                <span>The service may collect limited personal data to enhance user experience, following the Privacy Policy.<br>
+                    Users consent to the processing of their data as per the Privacy Policy.</span>
+
+                <p class="fw-bold fs-5 mt-3">7. Changes to the Terms:</p>
+                <span>The service reserves the right to change the terms of service.<br>
+                    Users will be notified of significant changes through updates on the website.</span>
+
+                <p class="fw-bold fs-5 mt-3">8. Contact:</p>
+                <span>TFor questions, concerns, or issues, please contact us using the form available on the website.</span>
+
+                <p class="fw-bold fs-5 mt-3">9. Final Provisions:</p>
+                <span>This terms of service come into effect upon publication on the website.<br>
+                     Users are obligated to regularly check the terms for any updates.</span>
+
+                <p class="mt-5">Thank you for using our service! Happy cooking!</p>
+            </div>
+        </div>
+
+        {% include 'footer.html' %}
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"
+        integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js"
+        integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF"
+        crossorigin="anonymous"></script>
+{% load sweetify %}
+{% sweetify %}
+</body>
+</html>
+
