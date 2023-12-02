@@ -109,6 +109,13 @@ def home(request):
         popular_recipes = response_popular.json()
         latest_recipes = response_latest.json()
 
+        if request.method == 'POST':
+            if 'email-notification' in request.POST:
+                sweetify.success(request, 'Success',
+                                 text='Subscribed to the newsletter.',
+                                 button='Close', timer=2000, timerProgressBar='true')
+                return redirect(request.META['HTTP_REFERER'])
+
         return render(request, 'home_page.html',
                       {'popular_recipes': popular_recipes, 'latest_recipes': latest_recipes, })
 
@@ -537,6 +544,7 @@ def shopping_list(request):
 
             if 'clear_shopping_list' in request.POST:
                 if shopping_list:
+                    print(shopping_list)
                     shopping_list_ids = get_all_shopping_list_items_id(shopping_list)
                     clear_shopping_list(shopping_list_ids)
                     return redirect(request.META['HTTP_REFERER'])
@@ -562,12 +570,18 @@ def shopping_list(request):
 
 def contact(request):
     if request.method == 'POST':
-        print('hmm')
         if 'send_message' in request.POST:
-            print('working')
             sweetify.success(request, 'Success',
                              text='Message was sent.',
                              button='Close', timer=2000, timerProgressBar='true')
             return redirect(request.META['HTTP_REFERER'])
 
     return render(request, 'contact.html')
+
+
+def statute(request):
+    return render(request, 'statute.html')
+
+
+def features(request):
+    return render(request, 'features.html')

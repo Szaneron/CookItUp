@@ -22,7 +22,11 @@
                     </h1>
                     <p>Elevate your culinary game with our flavorful recipes, explore a world of delicious possibilities
                         today!</p>
-                    <button class="explore-button">Explore Recipes</button>
+                    <a href="{% url 'recipe' %}">
+                        <button class="explore-button">Explore
+                            Recipes
+                        </button>
+                    </a>
                 </div>
             </div>
             <div class="col baner-image-div  mt-3 mb-3">
@@ -211,10 +215,11 @@
                 <h2 class="fw-bold">Get new recipe everyday</h2>
                 <p>Just input your e-mail and get new recipes every day. Let's experience like a professional chef.</p>
                 <div class="d-flex justify-content-center align-items-center">
-                    <form class="d-flex">
-                        <input class="form-control me-2 w-100" type="search" placeholder="Input your e-mail"
-                               aria-label="Search">
-                        <button class="btn btn-outline-success" type="submit">Send</button>
+                    <form method="post" class="d-flex">
+                        {% csrf_token %}
+                        <input class="form-control me-2 w-100" type="email" placeholder="Input your e-mail"
+                               aria-label="Email" required>
+                        <button class="btn btn-outline-success" name="email-notification">Send</button>
                     </form>
                 </div>
 
