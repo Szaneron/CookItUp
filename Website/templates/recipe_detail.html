@@ -35,6 +35,10 @@
                 {% endif %}
                 <span>Servings: {{ recipe_detail.servings }}</span><br>
                 <span>Cooking time: {{ recipe_detail.readyInMinutes }}</span>
+                <form method="post">
+                    {% csrf_token %}
+                    <button name="download_recipe">Download</button>
+                </form>
                 <hr>
                 <div class="row">
                     <p>Nutrition per serving</p><br>

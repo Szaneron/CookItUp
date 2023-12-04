@@ -1,4 +1,5 @@
 import decimal
+import imghdr
 import os
 from io import BytesIO
 
@@ -13,6 +14,7 @@ from reportlab.lib.colors import HexColor
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -22,8 +24,265 @@ from sweetify import sweetify
 
 from .forms import CustomUserCreationForm
 from .models import UserProfile
+from PIL import Image
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.utils import ImageReader
 
 load_dotenv()
+
+
+class PageNumCanvas(canvas.Canvas):
+    """
+    A class that handles page numbering.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.current_y = 0
+        self.pages = []
+
+    def showPage(self):
+        self.pages.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self):
+        num_pages = len(self.pages)
+        for page_num, page in enumerate(self.pages, start=1):
+            self.__dict__.update(page)
+            self.draw_page_number(page_num, num_pages)
+            super().showPage()
+
+        super().save()
+
+    def draw_page_number(self, page_num, total_pages):
+        page_text = f"Strona {page_num}/{total_pages}"
+        text_width = self.stringWidth(page_text, 'monteserrat_regular', 10)
+        self.setFont('monteserrat_regular', 10)
+        self.drawRightString(587 - text_width, 50, page_text)  # Adjusted coordinates
+
+    def set_y(self, y):
+        self.current_y = y
+
+    def get_y(self):
+        return self.current_y
+
+
+def generate_shopping_list_pdf(shopping_list):
+    # Register fonts
+    pdfmetrics.registerFont(TTFont('monteserrat_regular', 'Website/static/fonts/Montserrat_Regular_400.ttf'))
+    pdfmetrics.registerFont(TTFont('monteserrat_bold', 'Website/static/fonts/Montserrat_SemiBold_600.ttf'))
+
+    # Define data and headers
+    data = [['', 'Name', 'Amount', 'Unit']]
+    lp = 1
+    for aisle in shopping_list:
+        for item in aisle['items']:
+            data.append(
+                [str(lp), item['name'], item['measures']['metric']['amount'], item['measures']['metric']['unit']])
+            lp += 1
+
+    left_margin = 75
+    right_margin = 75
+
+    # Calculate the page width minus margins
+    usable_width = A4[0] - (left_margin + right_margin)
+
+    # Proportionally divide width for columns
+    num_columns = 4
+    col_widths = [usable_width / num_columns] * num_columns
+
+    # Assign width for first and second column
+    col_widths[0] = col_widths[0] * 0.35
+    col_widths[1] = col_widths[1] * 2
+
+    # Style settings
+    style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'monteserrat_bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 3),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+    ])
+
+    # Style for data
+    style_data = TableStyle([
+        ('FONTNAME', (0, 0), (-1, -1), 'monteserrat_regular'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('ALIGN', (1, 0), (1, -1), 'LEFT'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+    ])
+
+    # Create a table
+    stock_table = Table(data, colWidths=col_widths)
+    stock_table.setStyle(style)
+    stock_table.setStyle(style_data)
+
+    # Add a style for the title
+    style_title = ParagraphStyle(
+        'CustomTitle',
+        parent=getSampleStyleSheet()['Heading2'],
+        fontName='monteserrat_bold',
+        fontSize=14,
+        alignment=TA_LEFT,
+    )
+
+    # Add a style for the platform
+    style_platform = ParagraphStyle(
+        'CustomPlatform',
+        parent=getSampleStyleSheet()['Heading1'],
+        fontName='monteserrat_bold',
+        fontSize=20,
+        alignment=TA_LEFT,
+        textColor=HexColor('#247158'),
+    )
+
+    platform = Paragraph("CookItUp", style_platform)
+    title = Paragraph("Your Shopping List", style_title)
+
+    # Create content
+    content = [platform, title, Spacer(1, 10), stock_table, Spacer(1, 10)]
+
+    # Create PDF file in memory
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=50, bottomMargin=50, leftMargin=50, rightMargin=50)
+    doc.title = "CookItUp_shopping_list"
+    doc.build(content, canvasmaker=PageNumCanvas)
+
+    # Set appropriate headers for automatic downloading
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="CookItUp_shopping_list.pdf"'
+
+    # Save the contents of the response buffer
+    pdf = buffer.getvalue()
+    buffer.close()
+    response.write(pdf)
+    return response
+
+
+def generate_recipe_pdf(recipe_detail):
+    # Register fonts
+    pdfmetrics.registerFont(TTFont('monteserrat_regular', 'Website/static/fonts/Montserrat_Regular_400.ttf'))
+    pdfmetrics.registerFont(TTFont('monteserrat_bold', 'Website/static/fonts/Montserrat_SemiBold_600.ttf'))
+
+    title = recipe_detail['title']
+    image_url = recipe_detail['image']
+
+    # Pobierz obraz z podanego URL
+    response = requests.get(image_url)
+    img = Image.open(BytesIO(response.content))
+
+    new_img_size = (250, 150)  # Wprowadź nowy rozmiar obrazu (szerokość, wysokość)
+    img = img.resize(new_img_size)
+    # Utwórz plik PDF
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
+
+    # Utwórz obiekt PDF
+    buffer = BytesIO()
+    pdf = canvas.Canvas(buffer)
+
+    # Dodaj tytuł
+    pdf.setFont("monteserrat_bold", 20)
+    pdf.drawString(50, 780, f'{title}')
+
+    # Dodaj obraz
+    pdf.drawInlineImage(img, 50, 600)
+
+    # Dodaj tabelę ze składnikami
+    col1_x = 330  # Początkowa pozycja X dla kolumny 1
+    col2_x = 410  # Początkowa pozycja X dla kolumny 2
+    row_y = 740  # Początkowa pozycja Y
+
+    start_table = 740
+    end_table = 720
+
+    # Nagłówki tabeli
+    pdf.setFont("monteserrat_regular", 15)
+    pdf.drawString(330, 740, 'Ingredients')
+    pdf.setFont("monteserrat_regular", 12)
+    row_y -= 20  # Przesunięcie wiersza
+
+    ingredients_data = []
+
+    for ingredient in recipe_detail['extendedIngredients']:
+        name = ingredient['name']
+        amount = round(ingredient['measures']['metric']['amount'], 2)
+        unit = ingredient['measures']['metric']['unitShort']
+
+        data = {'name': name, 'amount': amount, 'unit': unit}
+        ingredients_data.append(data)
+
+    # Dodaj dane ze składnikami
+    for ingredient in ingredients_data:
+        pdf.drawString(col1_x, row_y,
+                       str(f"{ingredient['amount']} {ingredient['unit']}"))
+        pdf.drawString(col2_x, row_y, ingredient['name'])
+        row_y -= 20  # Przesunięcie wiersza
+        end_table -= 20
+
+    # Dodaj tytuł dla listy kroków
+    pdf.setFont("monteserrat_regular", 15)
+    pdf.drawString(50, end_table - 30, 'Recipe Steps')
+    pdf.setFont("monteserrat_regular", 12)
+
+    # # Dodaj tabelę ze składnikami
+    # table_2_col1_x = 50  # Początkowa pozycja X dla kolumny 1
+    # table_2_row_y = end_table - 50  # Początkowa pozycja Y
+
+    for step in recipe_detail['analyzedInstructions'][0]['steps']:
+        pdf.drawText(step['step'])
+
+    # Zakończ generowanie pliku PDF
+    pdf.showPage()
+    pdf.save()
+
+    # Pobierz treść pliku PDF z bufora i zwróć jako odpowiedź
+    pdf_content = buffer.getvalue()
+    buffer.close()
+    response.write(pdf_content)
+
+    return response
+
+    # # Add a style for the title
+    # style_title = ParagraphStyle(
+    #     'CustomTitle',
+    #     parent=getSampleStyleSheet()['Heading2'],
+    #     fontName='monteserrat_bold',
+    #     fontSize=18,
+    #     alignment=TA_LEFT,
+    # )
+    #
+    # title = Paragraph(f"{recipe_detail['title']}", style_title)
+    #
+    # image_url = f'{recipe_detail["image"]}'
+    # # image_response = requests.get(image_url)
+    # # img = Image.open(BytesIO(image_response.content))
+    #
+    # image = ImageReader(image_url)
+    #
+    # # Create content
+    # content = [title, image, Spacer(1, 10)]
+    #
+    # # Create PDF file in memory
+    # buffer = BytesIO()
+    #
+    # doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=50, bottomMargin=50, leftMargin=50, rightMargin=50)
+    # doc.title = "CookItUp_recipe_details"
+    # doc.build(content, canvasmaker=PageNumCanvas)
+    #
+    # # Set appropriate headers for automatic downloading
+    # response = HttpResponse(content_type='application/pdf')
+    # response['Content-Disposition'] = f'attachment; filename="CookItUp_recipe_detail_{recipe_detail["id"]}.pdf"'
+    #
+    # # Save the contents of the response buffer
+    # pdf = buffer.getvalue()
+    # buffer.close()
+    # response.write(pdf)
+    # return response
 
 
 def register_user(request):
@@ -305,6 +564,16 @@ def recipe_detail(request, recipe_id):
                                        text=add_item_failed_request_messages[0],
                                        button='Close')
 
+                if 'download_recipe' in request.POST:
+                    if recipe_detail:
+                        return_pdf_response = generate_recipe_pdf(recipe_detail)
+                        return return_pdf_response
+                    else:
+                        sweetify.warning(request, 'Warning',
+                                         text='No recipe inforamtion!',
+                                         button='Close')
+                        return redirect(request.META['HTTP_REFERER'])
+
                 context = {
                     'recipe_detail': recipe_detail,
                     'selected_nutrients': selected_nutrients,
@@ -382,128 +651,6 @@ def shopping_list(request):
             sweetify.error(request, 'Request Failed',
                            text=error_message,
                            button='Close')
-
-    class PageNumCanvas(canvas.Canvas):
-        """
-        A class that handles page numbering.
-        """
-
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.pages = []
-
-        def showPage(self):
-            self.pages.append(dict(self.__dict__))
-            self._startPage()
-
-        def save(self):
-            num_pages = len(self.pages)
-            for page_num, page in enumerate(self.pages, start=1):
-                self.__dict__.update(page)
-                self.draw_page_number(page_num, num_pages)
-                super().showPage()
-
-            super().save()
-
-        def draw_page_number(self, page_num, total_pages):
-            page_text = f"Strona {page_num}/{total_pages}"
-            text_width = self.stringWidth(page_text, 'monteserrat_regular', 10)
-            self.setFont('monteserrat_regular', 10)
-            self.drawRightString(587 - text_width, 50, page_text)  # Adjusted coordinates
-
-    def generate_shopping_list_pdf(shopping_list):
-        # Register fonts
-        pdfmetrics.registerFont(TTFont('monteserrat_regular', 'Website/static/fonts/Montserrat_Regular_400.ttf'))
-        pdfmetrics.registerFont(TTFont('monteserrat_bold', 'Website/static/fonts/Montserrat_SemiBold_600.ttf'))
-
-        # Define data and headers
-        data = [['', 'Name', 'Amount', 'Unit']]
-        lp = 1
-        for aisle in shopping_list:
-            for item in aisle['items']:
-                data.append(
-                    [str(lp), item['name'], item['measures']['metric']['amount'], item['measures']['metric']['unit']])
-                lp += 1
-
-        left_margin = 75
-        right_margin = 75
-
-        # Calculate the page width minus margins
-        usable_width = A4[0] - (left_margin + right_margin)
-
-        # Proportionally divide width for columns
-        num_columns = 4
-        col_widths = [usable_width / num_columns] * num_columns
-
-        # Assign width for first and second column
-        col_widths[0] = col_widths[0] * 0.35
-        col_widths[1] = col_widths[1] * 2
-
-        # Style settings
-        style = TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'monteserrat_bold'),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 3),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.white),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black),
-        ])
-
-        # Style for data
-        style_data = TableStyle([
-            ('FONTNAME', (0, 0), (-1, -1), 'monteserrat_regular'),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('ALIGN', (1, 0), (1, -1), 'LEFT'),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-        ])
-
-        # Create a table
-        stock_table = Table(data, colWidths=col_widths)
-        stock_table.setStyle(style)
-        stock_table.setStyle(style_data)
-
-        # Add a style for the title
-        style_title = ParagraphStyle(
-            'CustomTitle',
-            parent=getSampleStyleSheet()['Heading2'],
-            fontName='monteserrat_bold',
-            fontSize=14,
-            alignment=TA_LEFT,
-        )
-
-        # Add a style for the platform
-        style_platform = ParagraphStyle(
-            'CustomPlatform',
-            parent=getSampleStyleSheet()['Heading1'],
-            fontName='monteserrat_bold',
-            fontSize=20,
-            alignment=TA_LEFT,
-            textColor=HexColor('#247158'),
-        )
-
-        platform = Paragraph("CookItUp", style_platform)
-        title = Paragraph("Your Shopping List", style_title)
-
-        # Create content
-        content = [platform, title, Spacer(1, 10), stock_table, Spacer(1, 10)]
-
-        # Create PDF file in memory
-        buffer = BytesIO()
-
-        doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=50, bottomMargin=50, leftMargin=50, rightMargin=50)
-        doc.title = "CookItUp_shopping_list"
-        doc.build(content, canvasmaker=PageNumCanvas)
-
-        # Set appropriate headers for automatic downloading
-        response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="CookItUp_shopping_list.pdf"'
-
-        # Save the contents of the response buffer
-        pdf = buffer.getvalue()
-        buffer.close()
-        response.write(pdf)
-        return response
 
     # Get API key environment variable
     api_key = os.getenv('SPOONACULAR_API_KEY')
