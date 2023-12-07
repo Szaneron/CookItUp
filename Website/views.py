@@ -166,123 +166,189 @@ def generate_shopping_list_pdf(shopping_list):
 def generate_recipe_pdf(recipe_detail):
     # Register fonts
     pdfmetrics.registerFont(TTFont('monteserrat_regular', 'Website/static/fonts/Montserrat_Regular_400.ttf'))
+    pdfmetrics.registerFont(TTFont('monteserrat_medium', 'Website/static/fonts/Montserrat_Medium_500.ttf'))
     pdfmetrics.registerFont(TTFont('monteserrat_bold', 'Website/static/fonts/Montserrat_SemiBold_600.ttf'))
 
     title = recipe_detail['title']
     image_url = recipe_detail['image']
 
-    # Pobierz obraz z podanego URL
+    # Download the image from the given URL
     response = requests.get(image_url)
     img = Image.open(BytesIO(response.content))
 
-    new_img_size = (250, 150)  # Wprowadź nowy rozmiar obrazu (szerokość, wysokość)
+    new_img_size = (250, 150)  # New image size (width, height)
     img = img.resize(new_img_size)
-    # Utwórz plik PDF
+
+    # Create PDF file
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
 
-    # Utwórz obiekt PDF
+    # Create PDF object
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer)
 
-    # Dodaj tytuł
+    # Add title
     pdf.setFont("monteserrat_bold", 20)
-    pdf.drawString(50, 780, f'{title}')
 
-    # Dodaj obraz
-    pdf.drawInlineImage(img, 50, 600)
+    title_x = 50
+    title_y = 780
+    max_title_width = 500
 
-    # Dodaj tabelę ze składnikami
-    col1_x = 330  # Początkowa pozycja X dla kolumny 1
-    col2_x = 410  # Początkowa pozycja X dla kolumny 2
-    row_y = 740  # Początkowa pozycja Y
+    text_object = pdf.beginText(title_x, title_y)
+    text_object.setFont("monteserrat_bold", 20)
+    pdf.setFillColor(HexColor("#247158"))
 
-    start_table = 740
+    words = title.split()
+    line = ''
+    lines = []
+
+    for word in words:
+        if pdf.stringWidth(line + word, "monteserrat_bold", 20) < max_title_width:
+            line += word + ' '
+        else:
+            lines.append(line)
+            line = word + ' '
+
+    lines.append(line)  # Add last line
+
+    # Count the number of lines and adjust the text position
+    num_lines = len(lines)
+    line_height = 18
+    context_strat = 600 - (num_lines - 1) * line_height
+
+    for line in lines:
+        text_object.textLine(line)
+
+    pdf.drawText(text_object)
+    pdf.setFillColor(colors.black)
+
+    # Add an image
+    pdf.drawInlineImage(img, 50, context_strat)
+    end_image = context_strat
+
+    # Add a table with ingredients
+    table1_col1_x = 320  # Initial X position for column 1
+    table1_col2_x = 400  # Initial X position for column 2
+    table1_row_y = context_strat + 140  # Initial Y position
+
+    start_table = context_strat + 140
     end_table = 720
 
-    # Nagłówki tabeli
-    pdf.setFont("monteserrat_regular", 15)
-    pdf.drawString(330, 740, 'Ingredients')
+    # Table headers
+    pdf.setFont("monteserrat_medium", 15)
+    pdf.setFillColor(HexColor("#247158"))
+    pdf.drawString(320, start_table, 'Ingredients')
     pdf.setFont("monteserrat_regular", 12)
-    row_y -= 20  # Przesunięcie wiersza
+    pdf.setFillColor(colors.black)
+    table1_row_y -= 20  # Line feed
 
     ingredients_data = []
 
+    # Get ingredient data
     for ingredient in recipe_detail['extendedIngredients']:
         name = ingredient['name']
-        amount = round(ingredient['measures']['metric']['amount'], 2)
+        amount = round(ingredient['measures']['metric']['amount'], 1)
         unit = ingredient['measures']['metric']['unitShort']
 
         data = {'name': name, 'amount': amount, 'unit': unit}
         ingredients_data.append(data)
 
-    # Dodaj dane ze składnikami
-    for ingredient in ingredients_data:
-        pdf.drawString(col1_x, row_y,
-                       str(f"{ingredient['amount']} {ingredient['unit']}"))
-        pdf.drawString(col2_x, row_y, ingredient['name'])
-        row_y -= 20  # Przesunięcie wiersza
-        end_table -= 20
+    pdf_width = 595  # width of an A4 page in points
 
-    # Dodaj tytuł dla listy kroków
-    pdf.setFont("monteserrat_regular", 15)
+    # Add data with ingredients
+    for ingredient in ingredients_data:
+        # pdf.drawString(table1_col1_x, table1_row_y,
+        #                str(f"{ingredient['amount']} {ingredient['unit']}"))
+        # pdf.drawString(table1_col2_x, table1_row_y, ingredient['name'])
+        # table1_row_y -= 15  # Przesunięcie wiersza
+        # end_table -= 15
+
+        amount_unit_text = f"{ingredient['amount']} {ingredient['unit']}"
+        name_text = ingredient['name']
+
+        # Add the value for column 1
+        pdf.drawString(table1_col1_x, table1_row_y, str(amount_unit_text))
+
+        # Check the length of the component name
+        if pdf.stringWidth(name_text, 'monteserrat_regular', 12) > (pdf_width - table1_col2_x - 50):
+            # Split the component name into parts that will fit on one line
+            lines = []
+            line = ""
+            for word in name_text.split():
+                if pdf.stringWidth(line + word, 'monteserrat_regular', 12) <= (pdf_width - table1_col2_x - 50):
+                    line += word + " "
+                else:
+                    lines.append(line.rstrip())
+                    line = word + " "
+            lines.append(line.rstrip())
+
+            # Reverse the order of lines before adding to PDF
+            lines.reverse()
+
+            # Add additional lines for the remaining parts of the component name
+            for line in lines[1:]:
+                pdf.drawString(table1_col2_x, table1_row_y, line)
+                table1_row_y -= 15
+                end_table -= 15
+
+            # Set the component name as the first line
+            name_text = lines[0]
+
+        # Add the value for column 2
+        pdf.drawString(table1_col2_x, table1_row_y, name_text)
+
+        # Line feed
+        table1_row_y -= 15
+        end_table -= 15
+
+    if end_image < end_table:
+        end_table = end_image
+    else:
+        end_table = end_table + 15
+
+    # Add a title for the step list
+    pdf.setFont("monteserrat_medium", 15)
+    pdf.setFillColor(HexColor("#247158"))
     pdf.drawString(50, end_table - 30, 'Recipe Steps')
     pdf.setFont("monteserrat_regular", 12)
+    pdf.setFillColor(colors.black)
 
-    # # Dodaj tabelę ze składnikami
-    # table_2_col1_x = 50  # Początkowa pozycja X dla kolumny 1
-    # table_2_row_y = end_table - 50  # Początkowa pozycja Y
+    current_y = end_table - 40
+    max_width = 500  # Maximum text width
+    styles = getSampleStyleSheet()
+    normal_style = styles['Normal']
+
+    custom_style = ParagraphStyle(
+        'CustomStyle',
+        parent=normal_style,
+        fontName='monteserrat_regular',
+        fontSize=12,
+        leading=15,  # The value of the vertical spacing between lines
+    )
 
     for step in recipe_detail['analyzedInstructions'][0]['steps']:
-        pdf.drawText(step['step'])
+        step_text = f"{step['step']}"
+        formatted_text = Paragraph(step_text, custom_style)
+        width, height = formatted_text.wrap(max_width, pdf.pagesize[1])
 
-    # Zakończ generowanie pliku PDF
+        # Check if the text extends beyond the bottom margin
+        if current_y - height < 50:
+            pdf.showPage()  # Add a new page
+            current_y = pdf.pagesize[1] - 50  # Reset current_y to the top of the new page
+
+        formatted_text.drawOn(pdf, 50, current_y - height)
+        current_y -= height + 10  # Line feed
+
+    # Finish generating the PDF file
     pdf.showPage()
     pdf.save()
 
-    # Pobierz treść pliku PDF z bufora i zwróć jako odpowiedź
+    # Retrieve the content of the PDF file from the buffer and return it as a response
     pdf_content = buffer.getvalue()
     buffer.close()
     response.write(pdf_content)
 
     return response
-
-    # # Add a style for the title
-    # style_title = ParagraphStyle(
-    #     'CustomTitle',
-    #     parent=getSampleStyleSheet()['Heading2'],
-    #     fontName='monteserrat_bold',
-    #     fontSize=18,
-    #     alignment=TA_LEFT,
-    # )
-    #
-    # title = Paragraph(f"{recipe_detail['title']}", style_title)
-    #
-    # image_url = f'{recipe_detail["image"]}'
-    # # image_response = requests.get(image_url)
-    # # img = Image.open(BytesIO(image_response.content))
-    #
-    # image = ImageReader(image_url)
-    #
-    # # Create content
-    # content = [title, image, Spacer(1, 10)]
-    #
-    # # Create PDF file in memory
-    # buffer = BytesIO()
-    #
-    # doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=50, bottomMargin=50, leftMargin=50, rightMargin=50)
-    # doc.title = "CookItUp_recipe_details"
-    # doc.build(content, canvasmaker=PageNumCanvas)
-    #
-    # # Set appropriate headers for automatic downloading
-    # response = HttpResponse(content_type='application/pdf')
-    # response['Content-Disposition'] = f'attachment; filename="CookItUp_recipe_detail_{recipe_detail["id"]}.pdf"'
-    #
-    # # Save the contents of the response buffer
-    # pdf = buffer.getvalue()
-    # buffer.close()
-    # response.write(pdf)
-    # return response
 
 
 def register_user(request):

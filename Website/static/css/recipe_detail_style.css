@@ -36,6 +36,18 @@
     border-radius: 50%;
 }
 
+.download_recipe_button {
+    background-color: var(--color-eden);
+    color: var(--color-white);
+    padding: 0.5rem 1.5rem;
+    border-radius: 10px;
+}
+
+.download_recipe_button:hover {
+    background-color: var(--color-tradewind);
+    color: var(--color-white)
+}
+
 .add-to-cart {
     display: flex;
     justify-content: space-between;
@@ -57,7 +69,7 @@
 .add-to-cart-button:hover {
     color: var(--color-white);
     border-radius: 0.5rem;
-    background-color: var(--color-eden)
+    background-color: var(--color-tradewind);
 }
 
 .ingredient-container {
