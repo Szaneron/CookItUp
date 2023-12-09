@@ -181,7 +181,7 @@ def generate_recipe_pdf(recipe_detail):
 
     # Create PDF file
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="generated_pdf.pdf"'
+    response['Content-Disposition'] = f"attachment; filename=CookItUp_recipe_{recipe_detail['id']}.pdf"
 
     # Create PDF object
     buffer = BytesIO()
