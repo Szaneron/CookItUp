@@ -64,17 +64,23 @@ Follow these steps to set up Recipe Explorer on your local machine:
     pip install -r requirements.txt
     ```
 
-4. Apply migrations to set up the database.
+4. Create Environment Variables (.env):
+    ```bash
+    SECRET_KEY="Your django secret key"
+    SPOONACULAR_API_KEY="Your spoonacular api key"
+    ```
+
+5. Apply migrations to set up the database.
     ```bash
     python manage.py migrate
     ```
 
-5. Start the development server.
+6. Start the development server.
     ```bash
     python manage.py runserver
     ```
 
-6. Open your browser and navigate to http://localhost:8000 to embark on your culinary journey with CookItUp!
+7. Open your browser and navigate to http://localhost:8000 to embark on your culinary journey with CookItUp!
 
 
 ## Requirements
