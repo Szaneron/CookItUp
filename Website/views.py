@@ -1,11 +1,11 @@
 import decimal
-import imghdr
 import os
 from io import BytesIO
 
 import requests
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from dotenv import load_dotenv
@@ -14,7 +14,6 @@ from reportlab.lib.colors import HexColor
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.utils import ImageReader
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -25,8 +24,6 @@ from sweetify import sweetify
 from .forms import CustomUserCreationForm
 from .models import UserProfile
 from PIL import Image
-from reportlab.pdfgen.canvas import Canvas
-from reportlab.lib.utils import ImageReader
 
 load_dotenv()
 
@@ -540,6 +537,7 @@ def recipe(request):
     return render(request, 'recipe.html', context)
 
 
+@login_required(login_url='/login')
 def recipe_detail(request, recipe_id):
     user_profile = request.user.userprofile
 
@@ -686,6 +684,7 @@ def recipe_detail(request, recipe_id):
         return render(request, 'recipe_detail.html')
 
 
+@login_required(login_url='/login')
 def shopping_list(request):
     user_profile = request.user.userprofile
 
